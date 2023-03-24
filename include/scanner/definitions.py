@@ -80,5 +80,12 @@ lexeme_to_tag = {
     Lexemes.ASSIGN : Tag.ASSIGN,
     Lexemes.DIFF : Tag.DIFF,
     Lexemes.MULT : Tag.MULT,
-    Lexemes.SUM : Tag.SUM,
+    Lexemes.SUM : Tag.SUM
+}
+
+compound_symbols = {
+    "!" : Lexemes.ASSIGN,
+    Lexemes.ASSIGN : Lexemes.ASSIGN,
+    Lexemes.GT : Lexemes.ASSIGN,
+    Lexemes.LT : Lexemes.ASSIGN,
 }
