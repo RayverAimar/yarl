@@ -1,4 +1,4 @@
-from definitions import Tag, lexeme_to_tag, compound_symbols
+from include.scanner.definitions import Tag, lexeme_to_tag, compound_symbols
 from include.token.token import Token
 
 class Scanner:
@@ -66,8 +66,3 @@ class Scanner:
             token = self.__get_token()
             tokens.append(token)
         return tokens
-
-scanner = Scanner()
-tokens = scanner.scan("D:/dev/repositories/yarl/samples/sample.txt")
-for token in tokens:
-    print(token.lexeme, " ", token.tag)
