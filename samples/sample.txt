@@ -1,0 +1,2 @@
+myIntegerVariable:int=0
+myBooleanVariable:bool=False

@@ -7,9 +7,10 @@ class Lexemes:
     ASSIGN = "="
     ASYNC = "async"
     AWAIT = "await"
+    BOOL = "bool"
     BREAK = "break"
     CLASS = "class"
-    COLON = ":"
+    COLON_ASSIGN = ":"
     COMMA = ","
     CONTINUE = "continue"
     DEF = "def"
@@ -32,6 +33,7 @@ class Lexemes:
     IF = "if"
     IMPORT = "import"
     IN = "in"
+    INT = "int"
     IS = "is"
     LAMBDA = "lambda"
     LSBRACKET = "["
@@ -52,6 +54,7 @@ class Lexemes:
     RSBRACKET = "]"
     RPAREN = ")"
     RETURN = "return"
+    STR = "str"
     SUM = "+"
     TRUE = "True"
     TRY = "try"
@@ -64,10 +67,11 @@ class Tag:
     ARROW_ASSIGN = "ARROW_ASSIGN"
     ASSIGN = "ASSIGN"
     AS = "AS"
+    COLON_ASSIGN = "COLON_ASSIGN"
     DIFF = "ARITHMETIC_OPERATOR"
     DIV_INT = "ARITHMETIC_OPERATOR"
     DIV_FLOAT = "ARITHMETIC_OPERATOR"
-    ID = "ID"
+    ID = "IDENTIFIER"
     MULT = "ARITHMETIC_OPERATOR"
     NUM = "NUM"
     STR = "STR"
@@ -78,7 +82,10 @@ lexeme_to_tag = {
     Lexemes.AND: Tag.AND,
     Lexemes.ARROW_ASSIGN : Tag.ARROW_ASSIGN,
     Lexemes.ASSIGN : Tag.ASSIGN,
+    Lexemes.BOOL : Tag.ID,
+    Lexemes.COLON_ASSIGN : Tag.COLON_ASSIGN,
     Lexemes.DIFF : Tag.DIFF,
+    Lexemes.INT : Tag.ID,
     Lexemes.MULT : Tag.MULT,
     Lexemes.SUM : Tag.SUM
 }
