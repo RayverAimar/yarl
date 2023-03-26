@@ -1,6 +1,6 @@
 from yarl.definitions import Lexemes, Tag, lexeme_to_tag, compound_symbols
 from yarl.token import Token
-from yarl.utils import print_error
+from yarl.utils import print_error, prt_blue, prt_cyan, prt_red
 import os
 
 class Scanner:
@@ -16,17 +16,19 @@ class Scanner:
         tokens, errors = self.__get_tokens()
         if errors:
             for error in errors:
-                error["filename"] = os.path.abspath(filename)
+                error["filename"] = os.path.relpath(filename)
                 print_error(error)
         else:
             line = 1
             for token in tokens:
                 if token.line != line:
                     line = token.line
-                    print()
-                print(token, end=" ")
-        print(f"\n\tFinishing scanning, there were {len(errors)} errors")
+                    print(f"\n   {line}{prt_blue(' |')}", end=" ")
+                print(f"{prt_cyan('<')}{token}{prt_cyan('>')}", end="  ")
 
+        print(f'\n **** Finishing scanning, there were {prt_red(str(len(errors)))} errors')
+
+          
     def __get_complete_str(self):
         colon_assign = False
         if self.__look_back_for(Lexemes.COLON_ASSIGN):

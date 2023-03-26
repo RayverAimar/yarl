@@ -5,4 +5,4 @@ class Token(object):
         self.line = line
     
     def __str__(self) -> str:
-        return "<{}, {}, {}>".format(self.lexeme, self.tag, self.line)
+        return "{}, {}, {}".format(self.lexeme, self.tag, self.line)
