@@ -7,7 +7,9 @@ def contains(items:[int], x:int) -> bool:
         i = i + 1
     return False
 
+idx : "myClass" # This statement should return myClass as an IDENTIFIER although it is between quotes
+
 if contains([4, 8, 15, 16, 23], 15):
   print("Item found!")    # Prints this
 else:
-  print("Item not found.)
+  print("Item not found.")
