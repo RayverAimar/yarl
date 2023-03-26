@@ -49,7 +49,7 @@ class Lexemes:
     NOT = "not"
     OR = "or"
     PASS = "pass"
-    QUOTE = ' " '
+    QUOTE = '"'
     RAISE = "raise"
     RSBRACKET = "]"
     RPAREN = ")"
