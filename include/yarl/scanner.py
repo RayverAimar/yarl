@@ -1,5 +1,7 @@
-from include.scanner.definitions import Lexemes, Tag, lexeme_to_tag, compound_symbols
-from include.token.token import Token
+from yarl.definitions import Lexemes, Tag, lexeme_to_tag, compound_symbols
+from yarl.token import Token
+from yarl.utils import print_error
+import os
 
 class Scanner:
     def __init__(self):
@@ -11,7 +13,19 @@ class Scanner:
     
     def scan(self, filename):
         self.__open_file(filename=filename)
-        return self.__get_tokens()
+        tokens, errors = self.__get_tokens()
+        if errors:
+            for error in errors:
+                error["filename"] = os.path.abspath(filename)
+                print_error(error)
+        else:
+            line = 1
+            for token in tokens:
+                if token.line != line:
+                    line = token.line
+                    print()
+                print(token, end=" ")
+        print(f"\n\tFinishing scanning, there were {len(errors)} errors")
 
     def __open_file(self, filename):
         self.text = open(file=filename, mode='r')
@@ -108,7 +122,7 @@ class Scanner:
                 return Token(lexeme=lexeme, tag=lexeme_to_tag.get(lexeme), line=self.lineno)
             return Token(lexeme=lexeme, tag=Tag.ID, line=self.lineno)
         self.idx_error = len(self.linecontent) - 1
-        return Token(None, None, self.lineno) # invalid sintax (SyntaxError)
+        raise SyntaxError("invalid character") # invalid sintax (SyntaxError)
 
     def __get_tokens(self):
         tokens = []
@@ -129,4 +143,4 @@ class Scanner:
                     "idx_error": idx_error
                     }) # Should skip line for security
                 
-        return tokens
+        return tokens, errors

@@ -13,3 +13,4 @@ if contains([4, 8, 15, 16, 23], 15):
   print("Item found!")    # Prints this
 else:
   print("Item not found.")
+string = "asdasd # this is an error 
