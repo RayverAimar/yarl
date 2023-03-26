@@ -27,29 +27,6 @@ class Scanner:
                 print(token, end=" ")
         print(f"\n\tFinishing scanning, there were {len(errors)} errors")
 
-    def __open_file(self, filename):
-        self.text = open(file=filename, mode='r')
-    
-    def __get_next_char(self):
-        self.current_atom = self.text.read(1)
-        self.linecontent += self.current_atom
-        return self.current_atom
-
-    def __look_back_for(self, atom):
-        for i in self.linecontent[-2::-1]:
-            if i.isspace():
-                continue
-            if i == atom:
-                return i
-            else:
-                return None
-
-    def __get_str_start_position(self):
-        for i, atom in enumerate(self.linecontent[::-1]):
-            if atom == Lexemes.QUOTE:
-                return len(self.linecontent) - i - 1
-        return None
-
     def __get_complete_str(self):
         colon_assign = False
         if self.__look_back_for(Lexemes.COLON_ASSIGN):
@@ -63,29 +40,17 @@ class Scanner:
             raise SyntaxError("unterminated string literal")
         return Token(lexeme=lexeme[:-1], tag= (Tag.ID if colon_assign else Tag.STR), line=self.lineno)
 
-    def __next_char(self):
-        old_line = self.text.tell()
-        next_char = self.text.read(1)
-        self.text.seek(old_line)
-        return next_char
-    
-    def __skip_line(self):
-        while self.current_atom != "\n" and self.current_atom:
-            self.current_atom = self.__get_next_char()
-        return self.__skip_endl()
+    def __get_next_char(self):
+        self.current_atom = self.text.read(1)
+        self.linecontent += self.current_atom
+        return self.current_atom
 
-    def __skip_endl(self):
-        self.lineno += 1
-        current_line_text_backup = self.linecontent
-        self.linecontent = ""
-        return current_line_text_backup
+    def __get_str_start_position(self):
+        for i, atom in enumerate(self.linecontent[::-1]):
+            if atom == Lexemes.QUOTE:
+                return len(self.linecontent) - i - 1
+        return None
 
-    def __skip_spaces(self):
-        while self.current_atom.isspace() and self.current_atom:
-            if self.current_atom == "\n":
-                self.__skip_endl()
-            self.current_atom = self.__get_next_char()
-            
     def __get_token(self):
         self.__skip_spaces()
 
@@ -103,6 +68,8 @@ class Scanner:
         
         if compound_symbols.get(lexeme):
             if self.__next_char() == compound_symbols.get(lexeme):
+                self.current_atom = self.__get_next_char()
+                lexeme+=self.current_atom
                 return Token(lexeme=lexeme, tag=lexeme_to_tag.get(lexeme), line=self.lineno)
 
         if lexeme_to_tag.get(lexeme):
@@ -120,6 +87,7 @@ class Scanner:
                 lexeme += self.current_atom
             if lexeme_to_tag.get(lexeme):
                 return Token(lexeme=lexeme, tag=lexeme_to_tag.get(lexeme), line=self.lineno)
+
             return Token(lexeme=lexeme, tag=Tag.ID, line=self.lineno)
         self.idx_error = len(self.linecontent) - 1
         raise SyntaxError("invalid character") # invalid sintax (SyntaxError)
@@ -142,5 +110,39 @@ class Scanner:
                     "lineno" : self.lineno,
                     "idx_error": idx_error
                     }) # Should skip line for security
-                
         return tokens, errors
+
+    def __look_back_for(self, atom):
+        for i in self.linecontent[-2::-1]:
+            if i.isspace():
+                continue
+            if i == atom:
+                return i
+            else:
+                return None
+
+    def __next_char(self):
+        old_line = self.text.tell()
+        next_char = self.text.read(1)
+        self.text.seek(old_line)
+        return next_char       
+
+    def __open_file(self, filename):
+        self.text = open(file=filename, mode='r')
+
+    def __skip_endl(self):
+        self.lineno += 1
+        current_line_text_backup = self.linecontent
+        self.linecontent = ""
+        return current_line_text_backup
+
+    def __skip_line(self):
+        while self.current_atom != "\n" and self.current_atom:
+            self.current_atom = self.__get_next_char()
+        return self.__skip_endl()
+    
+    def __skip_spaces(self):
+        while self.current_atom.isspace() and self.current_atom:
+            if self.current_atom == "\n":
+                self.__skip_endl()
+            self.current_atom = self.__get_next_char()
