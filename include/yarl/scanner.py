@@ -23,7 +23,7 @@ class Scanner:
             for token in tokens:
                 if token.line != line:
                     line = token.line
-                    print(f"\n   {line}{prt_blue(' |')}", end=" ")
+                    print(f"\n   {line:>2}{prt_blue(' |')}", end=" ")
                 print(f"{prt_cyan('<')}{token}{prt_cyan('>')}", end="  ")
 
         print(f'\n  **** Finishing scanning, there were {prt_red(len(errors))} errors')
