@@ -16,7 +16,7 @@ class Scanner:
         tokens, errors = self.__get_tokens()
         if errors:
             for error in errors:
-                error["filename"] = os.path.relpath(filename)
+                error["filename"] = os.path.abspath(filename)
                 print_error(error)
         else:
             line = 1
@@ -26,7 +26,7 @@ class Scanner:
                     print(f"\n   {line}{prt_blue(' |')}", end=" ")
                 print(f"{prt_cyan('<')}{token}{prt_cyan('>')}", end="  ")
 
-        print(f'\n **** Finishing scanning, there were {prt_red(str(len(errors)))} errors')
+        print(f'\n  **** Finishing scanning, there were {prt_red(len(errors))} errors')
 
           
     def __get_complete_str(self):

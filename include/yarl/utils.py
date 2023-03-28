@@ -3,11 +3,18 @@ def print_error(error):
     if error["content"][-1] == "\n":
         error["content"] = error["content"][:-1]
     print("\t", error["content"])
-    point_out_error = " " * error["idx_error"] + prt_red("^" + "~" * (len(error["content"]) - error["idx_error"]))
+    
+    idx_error = error["idx_error"]
+    highlight_number = 0 if "invalid" in error["msg"] else len(error["content"])-idx_error
+    point_out_error = " " * idx_error + prt_red("^" + "~" * highlight_number)
+    
     print("\t", point_out_error)
-    print("LexicalError: ", end="")
+    print("  LexicalError: ", end="")
     print(error["msg"])
     print()
+
+# Globals
+
 
 # Prettier Output
 BOLD   = '\33[1m'
@@ -22,25 +29,25 @@ CYAN    = '\033[96m'
 RESET = '\033[00m'
 
 def prt_red(text):
-    return BOLD + RED + text + RESET
+    return BOLD + RED + str(text) + RESET
 
 def prt_green(text):
-    return BOLD + GREEN + text + RESET
+    return BOLD + GREEN + str(text) + RESET
 
 def prt_yellow(text):
-    return BOLD + YELLOW + text + RESET
+    return BOLD + YELLOW + str(text) + RESET
 
 def prt_blue(text): 
-    return BOLD + BLUE + text + RESET
+    return BOLD + BLUE + str(text) + RESET
 
 def prt_violet(text): 
-    return BOLD + VIOLET + text + RESET
+    return BOLD + VIOLET + str(text) + RESET
 
 def prt_beige(text): 
-    return BOLD + BEIGE + text + RESET
+    return BOLD + BEIGE + str(text) + RESET
 
 def prt_white(text): 
-    return BOLD + WHITE + text + RESET
+    return BOLD + WHITE + str(text) + RESET
 
 def prt_cyan(text):
-    return BOLD + CYAN + text + RESET
+    return BOLD + CYAN + str(text) + RESET
