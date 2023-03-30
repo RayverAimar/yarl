@@ -68,59 +68,84 @@ class Tag:
     ARROW_ASSIGN = "ARROW_ASSIGN"
     AS = "AS"
     ASSIGN = "ASSIGN"
+    ASYNC = "ASYNC"
+    AWAIT = "AWAIT"
     BIN_OPERATOR = "BIN_OPERATOR"
     BIN_VALUE = "BIN_VALUE"
+    BREAK = "BREAK"
+    CLASS = "CLASS"
+    CONTINUE = "CONTINUE"
     COLON_ASSIGN = "COLON_ASSIGN"
     COMMA = "COMMA"
     COMPARISON_OPERATOR = "COMPARISON_OPERATOR"
+    DEF = "DEF"
+    DEL = "DEL"
+    ELIF = "ELIF"
+    ELSE = "ELSE"
     EOL_COMMENT = "EOL_COMMENT"
+    EXCEPT = "EXCEPT"
+    FINALLY = "FINALLY"
+    FOR = "FOR"
+    GLOBAL = "GLOBAL"
     ID = "ID"
-    KEYWORD = "KEYWORD"
+    IF = "IF"
+    IMPORT = "IMPORT"
+    IN = "IN"
+    IS = "IS"
+    LAMBDA = "LAMBDA"
     LSBRACKET = "LSBRACKET"
     LPAREN = "LPAREN"
     ML_COMMENT = "ML_COMMENT"
+    NONE = "NONE"
+    NONLOCAL = "NONLOCAL"
     NUM = "NUM"
+    PASS = "PASS"
     QUOTE = "QUOTE"
+    RAISE = "RAISE"
+    RETURN = "RETURN"
     RSBRACKET = "RSBRACKET"
     RPAREN = "RPAREN"
     STR = "STR"
-
+    TRY = "TRY"
+    WHILE = "WHILE"
+    WITH = "WITH"
+    YIELD = "YIELD"
 
 lexeme_to_tag = {
     Lexemes.AND:            Tag.BIN_OPERATOR,
     Lexemes.ARROW_ASSIGN:   Tag.ARROW_ASSIGN,
     Lexemes.AS:             Tag.ASSIGN,
     Lexemes.ASSIGN:         Tag.ASSIGN,
-    Lexemes.ASYNC:          Tag.KEYWORD,
-    Lexemes.AWAIT:          Tag.KEYWORD,
+    Lexemes.ASYNC:          Tag.ASYNC,
+    Lexemes.AWAIT:          Tag.AWAIT,
     Lexemes.BOOL:           Tag.ID,
-    Lexemes.BREAK:          Tag.KEYWORD,
-    Lexemes.CLASS:          Tag.KEYWORD,
+    Lexemes.BREAK:          Tag.BREAK,
+    Lexemes.CLASS:          Tag.CLASS,
     Lexemes.COLON_ASSIGN:   Tag.COLON_ASSIGN,
     Lexemes.COMMA:          Tag.COMMA,
-    Lexemes.CONTINUE:       Tag.KEYWORD,
-    Lexemes.DEF:            Tag.KEYWORD,
-    Lexemes.DEL:            Tag.KEYWORD,
+    Lexemes.CONTINUE:       Tag.CONTINUE,
+    Lexemes.DEF:            Tag.DEF,
+    Lexemes.DEL:            Tag.DEL,
     Lexemes.DIFF:           Tag.ARITHMETIC_OPERATOR,
     Lexemes.DIV_FLOAT:      Tag.ARITHMETIC_OPERATOR,
     Lexemes.DIV_INT:        Tag.ARITHMETIC_OPERATOR,
     Lexemes.EQ:             Tag.COMPARISON_OPERATOR,
-    Lexemes.ELIF:           Tag.KEYWORD,
-    Lexemes.ELSE:           Tag.KEYWORD,
+    Lexemes.ELIF:           Tag.ELIF,
+    Lexemes.ELSE:           Tag.ELSE,
     Lexemes.EOL_COMMENT:    Tag.EOL_COMMENT,
-    Lexemes.EXCEPT:         Tag.KEYWORD,
+    Lexemes.EXCEPT:         Tag.EXCEPT,
     Lexemes.FALSE:          Tag.ID,
-    Lexemes.FINALLY:        Tag.KEYWORD,
-    Lexemes.FOR:            Tag.KEYWORD,
-    Lexemes.GLOBAL:         Tag.KEYWORD,
+    Lexemes.FINALLY:        Tag.FINALLY,
+    Lexemes.FOR:            Tag.FOR,
+    Lexemes.GLOBAL:         Tag.GLOBAL,
     Lexemes.GE:             Tag.COMPARISON_OPERATOR,
     Lexemes.GT:             Tag.COMPARISON_OPERATOR,
-    Lexemes.IF:             Tag.KEYWORD,
-    Lexemes.IMPORT:         Tag.KEYWORD,
-    Lexemes.IN:             Tag.KEYWORD,
+    Lexemes.IF:             Tag.IF,
+    Lexemes.IMPORT:         Tag.IMPORT,
+    Lexemes.IN:             Tag.IN,
     Lexemes.INT:            Tag.ID,
-    Lexemes.IS:             Tag.KEYWORD,
-    Lexemes.LAMBDA:         Tag.KEYWORD,
+    Lexemes.IS:             Tag.IS,
+    Lexemes.LAMBDA:         Tag.LAMBDA,
     Lexemes.LSBRACKET:      Tag.LSBRACKET,
     Lexemes.LE:             Tag.COMPARISON_OPERATOR,
     Lexemes.LPAREN:         Tag.LPAREN,
@@ -129,24 +154,24 @@ lexeme_to_tag = {
     Lexemes.MOD:            Tag.ARITHMETIC_OPERATOR,
     Lexemes.MULT:           Tag.ARITHMETIC_OPERATOR,
     Lexemes.NE:             Tag.COMPARISON_OPERATOR,
-    Lexemes.NONE:           Tag.KEYWORD,
-    Lexemes.NONLOCAL:       Tag.KEYWORD,
+    Lexemes.NONE:           Tag.NONE,
+    Lexemes.NONLOCAL:       Tag.NONLOCAL,
     Lexemes.NOT:            Tag.BIN_OPERATOR,
     Lexemes.OR:             Tag.BIN_OPERATOR,
-    Lexemes.PASS:           Tag.KEYWORD,
+    Lexemes.PASS:           Tag.PASS,
     Lexemes.PRINT:          Tag.ID,
     Lexemes.QUOTE:          Tag.QUOTE,
-    Lexemes.RAISE:          Tag.KEYWORD,
+    Lexemes.RAISE:          Tag.RAISE,
     Lexemes.RSBRACKET:      Tag.RSBRACKET,
     Lexemes.RPAREN:         Tag.RPAREN,
-    Lexemes.RETURN:         Tag.KEYWORD,
+    Lexemes.RETURN:         Tag.RETURN,
     Lexemes.STR:            Tag.STR,
     Lexemes.SUM:            Tag.ARITHMETIC_OPERATOR,
     Lexemes.TRUE:           Tag.ID,
-    Lexemes.TRY:            Tag.KEYWORD,
-    Lexemes.WHILE:          Tag.KEYWORD,
-    Lexemes.WITH:           Tag.KEYWORD,
-    Lexemes.YIELD:          Tag.KEYWORD
+    Lexemes.TRY:            Tag.TRY,
+    Lexemes.WHILE:          Tag.WHILE,
+    Lexemes.WITH:           Tag.WITH,
+    Lexemes.YIELD:          Tag.YIELD
 }
 
 compound_symbols = {
