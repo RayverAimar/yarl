@@ -78,6 +78,7 @@ class Tag:
     COLON_ASSIGN = "COLON_ASSIGN"
     COMMA = "COMMA"
     COMPARISON_OPERATOR = "COMPARISON_OPERATOR"
+    DEDENT = "DEDENT"
     DEF = "DEF"
     DEL = "DEL"
     ELIF = "ELIF"
@@ -91,6 +92,7 @@ class Tag:
     IF = "IF"
     IMPORT = "IMPORT"
     IN = "IN"
+    INDENT = "INDENT"
     IS = "IS"
     LAMBDA = "LAMBDA"
     LSBRACKET = "LSBRACKET"
@@ -181,3 +183,5 @@ compound_symbols = {
     Lexemes.LT : Lexemes.ASSIGN,
     Lexemes.DIFF : Lexemes.GT
 }
+
+INDENT_SIZE = 4

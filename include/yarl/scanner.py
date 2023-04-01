@@ -1,7 +1,8 @@
-from yarl.definitions import Lexemes, Tag, lexeme_to_tag, compound_symbols
+from yarl.definitions import Lexemes, Tag, lexeme_to_tag, compound_symbols, INDENT_SIZE
 from yarl.token import Token
 from yarl.utils import print_error, prt_blue, prt_cyan, prt_red
 import os
+import math
 
 class Scanner:
     def __init__(self):
@@ -9,7 +10,9 @@ class Scanner:
         self.linecontent = ""
         self.current_atom = ""
         self.text = ""
-        self.idx_error = None
+        self.idx = 0
+        self.looking_for_indents = True
+        self.last_indents = 0
     
     def scan(self, filename):
         self.__open_file(filename=filename)
@@ -28,8 +31,24 @@ class Scanner:
 
         print(f'\n  **** Finishing scanning, there were {prt_red(len(errors))} errors')
 
-          
+    def __check_for_indents(self):
+        n_indents = math.ceil(self.idx / INDENT_SIZE)
+        delta_indents = n_indents = self.last_indents 
+        if delta_indents == 0:
+            return
+        indents_dedents = []
+        self.last_indents = n_indents
+        if delta_indents > 0:
+            for i in range(delta_indents):
+                indents_dedents.append(Token(lexeme="", tag=Tag.INDENT,line=self.lineno, idx=i*INDENT_SIZE+1))
+        else:
+            delta_indents = abs(delta_indents)
+            for i in range(delta_indents):
+                indents_dedents.append(Token(lexeme="", tag=Tag.DEDENT,line=self.lineno, idx=i*INDENT_SIZE+1))
+        return
+
     def __get_complete_str(self):
+        idx = self.idx
         colon_assign = False
         if self.__look_back_for(Lexemes.COLON_ASSIGN):
             colon_assign = True
@@ -38,13 +57,14 @@ class Scanner:
         while self.current_atom != "\n" and self.current_atom != Lexemes.QUOTE and self.current_atom:
             lexeme+=self.__get_next_char()
         if not self.current_atom or self.current_atom == "\n":
-            self.idx_error = self.__get_str_start_position()
+            self.idx = self.__get_str_start_position()
             raise SyntaxError("unterminated string literal")
-        return Token(lexeme=lexeme[:-1], tag= (Tag.ID if colon_assign else Tag.STR), line=self.lineno)
+        return Token(lexeme=lexeme[:-1], tag= (Tag.ID if colon_assign else Tag.STR), line=self.lineno, idx=idx)
 
     def __get_next_char(self):
         self.current_atom = self.text.read(1)
         self.linecontent += self.current_atom
+        self.idx += 1
         return self.current_atom
 
     def __get_str_start_position(self):
@@ -58,9 +78,15 @@ class Scanner:
 
         if not self.current_atom: # Not a token neither a lexical error
             return
-        
-        lexeme = self.current_atom
 
+        if self.looking_for_indents:
+            if self.__next_char() == "\n":
+                return
+            self.looking_for_indents = False
+            return self.__check_for_indents()
+
+        lexeme = self.current_atom
+        idx = self.idx
         if lexeme == Lexemes.EOL_COMMENT: # Comments are not errors
             self.__skip_line()
             return
@@ -72,26 +98,26 @@ class Scanner:
             if self.__next_char() == compound_symbols.get(lexeme):
                 self.current_atom = self.__get_next_char()
                 lexeme+=self.current_atom
-                return Token(lexeme=lexeme, tag=lexeme_to_tag.get(lexeme), line=self.lineno)
+                return Token(lexeme=lexeme, tag=lexeme_to_tag.get(lexeme), line=self.lineno, idx=idx)
 
         if lexeme_to_tag.get(lexeme):
-            return Token(lexeme=lexeme, tag=lexeme_to_tag.get(lexeme), line=self.lineno)
+            return Token(lexeme=lexeme, tag=lexeme_to_tag.get(lexeme), line=self.lineno, idx=self.idx)
         
         if lexeme.isnumeric():
             while self.__next_char().isnumeric():
                 self.current_atom = self.__get_next_char()
                 lexeme += self.current_atom
-            return Token(lexeme=lexeme, tag=Tag.NUM, line=self.lineno)
+            return Token(lexeme=lexeme, tag=Tag.NUM, line=self.lineno, idx=idx)
         
         if lexeme.isalpha():
             while self.__next_char().isalpha() or self.__next_char().isnumeric() or self.__next_char() == '_':
                 self.current_atom = self.__get_next_char()
                 lexeme += self.current_atom
             if lexeme_to_tag.get(lexeme):
-                return Token(lexeme=lexeme, tag=lexeme_to_tag.get(lexeme), line=self.lineno)
+                return Token(lexeme=lexeme, tag=lexeme_to_tag.get(lexeme), line=self.lineno, idx=idx)
 
-            return Token(lexeme=lexeme, tag=Tag.ID, line=self.lineno)
-        self.idx_error = len(self.linecontent) - 1
+            return Token(lexeme=lexeme, tag=Tag.ID, line=self.lineno, idx=idx)
+        self.idx = len(self.linecontent) - 1
         raise SyntaxError("invalid character") # invalid sintax (SyntaxError)
 
     def __get_tokens(self):
@@ -100,12 +126,17 @@ class Scanner:
         while self.__get_next_char():
             try:
                 token = self.__get_token()
-                if token:
+                if not token:
+                    continue
+                if type(token) == type(list()):
+                    for unique_token in token:
+                        tokens.append(unique_token)
+                else:
                     tokens.append(token)
             except Exception as ex:
                 line_content = self.__skip_line()
-                idx_error = self.idx_error
-                self.idx_error = None
+                idx_error = self.idx
+                self.idx = None
                 errors.append({
                     "msg" : str(ex),
                     "content" : line_content, 
@@ -135,7 +166,9 @@ class Scanner:
     def __skip_endl(self):
         self.lineno += 1
         current_line_text_backup = self.linecontent
+        self.idx = 0
         self.linecontent = ""
+        self.looking_for_indents = True
         return current_line_text_backup
 
     def __skip_line(self):
@@ -148,3 +181,4 @@ class Scanner:
             if self.current_atom == "\n":
                 self.__skip_endl()
             self.current_atom = self.__get_next_char()
+        
