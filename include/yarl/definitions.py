@@ -44,6 +44,7 @@ class Lexemes:
     MOD = "%"
     MULT = "*"
     NE = "!="
+    NEWLINE = "\n"
     NONE = "None"
     NONLOCAL = "nonlocal"
     NOT = "not"
@@ -98,6 +99,7 @@ class Tag:
     LSBRACKET = "LSBRACKET"
     LPAREN = "LPAREN"
     ML_COMMENT = "ML_COMMENT"
+    NEWLINE = "NEWLINE"
     NONE = "NONE"
     NONLOCAL = "NONLOCAL"
     NUM = "NUM"
@@ -156,6 +158,7 @@ lexeme_to_tag = {
     Lexemes.MOD:            Tag.ARITHMETIC_OPERATOR,
     Lexemes.MULT:           Tag.ARITHMETIC_OPERATOR,
     Lexemes.NE:             Tag.COMPARISON_OPERATOR,
+    Lexemes.NEWLINE:        Tag.NEWLINE,
     Lexemes.NONE:           Tag.NONE,
     Lexemes.NONLOCAL:       Tag.NONLOCAL,
     Lexemes.NOT:            Tag.BIN_OPERATOR,
