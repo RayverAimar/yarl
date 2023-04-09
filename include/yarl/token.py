@@ -4,5 +4,5 @@ class Token(object):
         self.tag = tag
         self.line = line
     
-    def __str__(self) -> str:
-        return "{}, {}, {}".format(self.lexeme, self.tag, self.line)
+    def found_at(self) -> str:
+        return "({}, {})".format(self.line, '0')

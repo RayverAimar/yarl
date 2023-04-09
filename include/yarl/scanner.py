@@ -1,6 +1,7 @@
 from yarl.definitions import Lexemes, Tag, lexeme_to_tag, compound_symbols
 from yarl.token import Token
-from yarl.utils import print_error, prt_blue, prt_cyan, prt_red
+from yarl.utils import *
+
 import os
 
 class Scanner:
@@ -14,20 +15,30 @@ class Scanner:
     def scan(self, filename):
         self.__open_file(filename=filename)
         tokens, errors = self.__get_tokens()
+
+        console = Console()
+        
+        scan_tittle = """ # Yet Another Regular Language YARL """
+
+        console.print(Markdown(scan_tittle))
+
         if errors:
+            content = ""
+
             for error in errors:
                 error["filename"] = os.path.abspath(filename)
-                print_error(error)
+                content += append_error(error)
+            
+            console.print(scan_debug_panel(content), justify=None)
         else:
-            line = 1
+            debug_table = scan_debug_table()
+
             for token in tokens:
-                if token.line != line:
-                    line = token.line
-                    print(f"\n   {line:>2}{prt_blue(' |')}", end=" ")
-                print(f"{prt_cyan('<')}{token}{prt_cyan('>')}", end="  ")
+                debug_table.add_row("DEBUG SCAN", token.tag, token.lexeme, token.found_at())
+            
+            console.print(debug_table, justify="center")
 
-        print(f'\n  **** Finishing scanning, there were {prt_red(len(errors))} errors')
-
+        console.print(f'\nFinishing scanning with [b red]{len(errors)}[/b red] errors', justify="center")
           
     def __get_complete_str(self):
         colon_assign = False
