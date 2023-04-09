@@ -38,7 +38,7 @@ class Scanner:
             
             console.print(debug_table, justify="center")
 
-        console.print(f'\nFinishing scanning with [b red]{len(errors)}[/b red] errors', justify="center")
+        console.print(f'\nFinishing scanning with [b red]{len(errors)}[/b red] errors\n', justify="center")
           
     def __get_complete_str(self):
         colon_assign = False

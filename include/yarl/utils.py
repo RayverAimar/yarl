@@ -4,8 +4,7 @@ from rich.table import Table, box
 from rich.panel import Panel
 
 def scan_debug_table():
-    debug_table = Table( show_edge=False,show_header=True, expand=False,
-                             row_styles=["none", "dim"], box=box.SIMPLE )
+    debug_table = Table( show_edge=False,show_header=True, expand=False, box=box.SIMPLE )
 
     debug_table.add_column("[green]Process", style="green")
 
@@ -44,7 +43,7 @@ def append_error(error):
     highlight_number = 0 if "invalid" in error["msg"] else len(error["content"])-idx_error
     point_out_error = " " * idx_error + "[b red]^" + ("~" * highlight_number)
     
-    content += f'{point_out_error}\n'
+    content += f'  {point_out_error}\n'
 
     content += f'LexicalError: [/b red]{error["msg"]}\n'
 
