@@ -13,32 +13,10 @@ class Scanner:
         self.idx_error = None
     
     def scan(self, filename):
+
         self.__open_file(filename=filename)
-        tokens, errors = self.__get_tokens()
 
-        console = Console()
-        
-        scan_tittle = """ # Yet Another Regular Language YARL """
-
-        console.print(Markdown(scan_tittle))
-
-        if errors:
-            content = ""
-
-            for error in errors:
-                error["filename"] = os.path.abspath(filename)
-                content += append_error(error)
-            
-            console.print(scan_debug_panel(content), justify=None)
-        else:
-            debug_table = scan_debug_table()
-
-            for token in tokens:
-                debug_table.add_row("DEBUG SCAN", token.tag, token.lexeme, token.found_at())
-            
-            console.print(debug_table, justify="center")
-
-        console.print(f'\nFinishing scanning with [b red]{len(errors)}[/b red] errors\n', justify="center")
+        return self.__get_tokens()
           
     def __get_complete_str(self):
         colon_assign = False

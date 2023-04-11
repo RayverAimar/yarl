@@ -1,3 +1,4 @@
+from yarl.consolehandler import ConsoleHandler
 from yarl.scanner import Scanner
 
 import typer
@@ -15,9 +16,22 @@ def file_exists(path: str):
 def main(debug: bool = False, file_path:str = typer.Argument("./samples/sample.txt", 
                                         help="Input file with source code", 
                                         callback=file_exists)):
+    console_handler = ConsoleHandler()
+
     if debug:
+        console_handler.print_title()
+
         scanner = Scanner()
-        scanner.scan(file_path)
+        tokens, errors = scanner.scan(file_path)
+
+        if errors:
+            console_handler.scan_debug_panel(errors, file_path)
+        else:
+            console_handler.scan_debug_table(tokens)
+
+        console_handler.console.print(f'\nFinishing scanning with [b red]{len(errors)}[/b red] errors\n', justify="center")
+
+
 
 if __name__ == "__main__":
     typer.run(main)
