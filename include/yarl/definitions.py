@@ -44,6 +44,7 @@ class Lexemes:
     MOD = "%"
     MULT = "*"
     NE = "!="
+    NEWLINE = "\n"
     NONE = "None"
     NONLOCAL = "nonlocal"
     NOT = "not"
@@ -78,6 +79,7 @@ class Tag:
     COLON_ASSIGN = "COLON_ASSIGN"
     COMMA = "COMMA"
     COMPARISON_OPERATOR = "COMPARISON_OPERATOR"
+    DEDENT = "DEDENT"
     DEF = "DEF"
     DEL = "DEL"
     ELIF = "ELIF"
@@ -91,11 +93,13 @@ class Tag:
     IF = "IF"
     IMPORT = "IMPORT"
     IN = "IN"
+    INDENT = "INDENT"
     IS = "IS"
     LAMBDA = "LAMBDA"
     LSBRACKET = "LSBRACKET"
     LPAREN = "LPAREN"
     ML_COMMENT = "ML_COMMENT"
+    NEWLINE = "NEWLINE"
     NONE = "NONE"
     NONLOCAL = "NONLOCAL"
     NUM = "NUM"
@@ -154,6 +158,7 @@ lexeme_to_tag = {
     Lexemes.MOD:            Tag.ARITHMETIC_OPERATOR,
     Lexemes.MULT:           Tag.ARITHMETIC_OPERATOR,
     Lexemes.NE:             Tag.COMPARISON_OPERATOR,
+    Lexemes.NEWLINE:        Tag.NEWLINE,
     Lexemes.NONE:           Tag.NONE,
     Lexemes.NONLOCAL:       Tag.NONLOCAL,
     Lexemes.NOT:            Tag.BIN_OPERATOR,
@@ -181,3 +186,5 @@ compound_symbols = {
     Lexemes.LT : Lexemes.ASSIGN,
     Lexemes.DIFF : Lexemes.GT
 }
+
+INDENT_SIZE = 4

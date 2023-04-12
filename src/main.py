@@ -32,6 +32,5 @@ def main(debug: bool = False, file_path:str = typer.Argument("./samples/sample.t
         console_handler.console.print(f'\nFinishing scanning with [b red]{len(errors)}[/b red] errors\n', justify="center")
 
 
-
 if __name__ == "__main__":
     typer.run(main)
