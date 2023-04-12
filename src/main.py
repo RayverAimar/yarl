@@ -13,7 +13,7 @@ def file_exists(path: str):
     
     return file_path
 
-def main(debug: bool = False, file_path:str = typer.Argument("./samples/sample.txt", 
+def main(debug: bool = True, file_path:str = typer.Argument("./samples/correct_sample.yarl", 
                                         help="Input file with source code", 
                                         callback=file_exists)):
     console_handler = ConsoleHandler()

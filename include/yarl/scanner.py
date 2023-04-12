@@ -1,6 +1,5 @@
 from yarl.definitions import Lexemes, Tag, lexeme_to_tag, compound_symbols, INDENT_SIZE
 from yarl.token import Token
-from yarl.utils import *
 
 import os
 import math
@@ -16,7 +15,6 @@ class Scanner:
         self.last_indents = 0
     
     def scan(self, filename):
-
         self.__open_file(filename=filename)
         return self.__get_tokens()
           
@@ -70,7 +68,7 @@ class Scanner:
         begin = self.text.tell()
         next_char = self.current_atom
         line = ""
-        while next_char != "\n":
+        while next_char != "\n" and next_char:
             if next_char != " ":
                 line += next_char
             next_char = self.text.read(1)
@@ -84,6 +82,8 @@ class Scanner:
     def __get_token(self):
         if self.__beginning_line():
             self.__skip_unvalid_lines()
+            if not self.current_atom:
+                return
             indents_dedents = self.__check_for_indents()
             if indents_dedents:
                 return indents_dedents
@@ -144,14 +144,12 @@ class Scanner:
                 if type(token) == type(list()):
                     for unique_token in token:
                         tokens.append(unique_token)
-                        print(unique_token)
                 else:
                     tokens.append(token)
-                    print(token)
             except Exception as ex:
                 line_content = self.__jump_to_endline()
                 idx_error = self.idx
-                self.idx = None
+                self.idx = 0
                 errors.append({
                     "msg" : str(ex),
                     "content" : line_content, 
@@ -201,16 +199,7 @@ class Scanner:
     def __skip_unvalid_lines(self):
         while not self.__is_valid_line():
             self.__jump_to_endline()
-            self.__get_next_char()
-
-            
-        
-# Los indents deben de ser calculados al inicio
-# El problema radica cuando la/las primeras lineas del codigo
-# Tienen espacios y lineas vacias
-# El scanner detectará demasiados indents seguidos de un NEWLINE
-# Para eso, el scanner debe de ser modificado para aceptar los NEWLINE como token
-# Entonces, añadir un if grande en la funcion get_token que discerna si es o no NEWLINE
-# En el caso de los indents, si el siguiente character válido es NEWLINE entonces los indents son incorrectos 
-# De esta manera no habría doble NEWLINE y los indents solo serían válidos si la linea es no-nula (Implementar funcion para decidir si una linea es nula o no)
-# Es nula si tiene comentarios tambien 
+            if self.current_atom:
+                self.__get_next_char()
+            else:
+                break
