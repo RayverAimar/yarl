@@ -47,6 +47,9 @@ class Scanner:
         if not self.current_atom or self.current_atom == "\n":
             self.idx = self.__get_str_start_position()
             raise SyntaxError("unterminated string literal")
+        if not all(32 <= ord(char) <= 120 for char in lexeme):   
+            raise SyntaxError("invalid character in string")
+        
         return Token(lexeme=lexeme[:-1], tag= (Tag.ID if colon_assign else Tag.STR), line=self.lineno, idx=idx)
 
     def __get_next_char(self):
@@ -121,6 +124,10 @@ class Scanner:
             while self.__next_char().isnumeric():
                 self.current_atom = self.__get_next_char()
                 lexeme += self.current_atom
+            
+            if (int(lexeme) > 2147483647):
+                raise OverflowError("integer overflow")
+
             return Token(lexeme=lexeme, tag=Tag.NUM, line=self.lineno, idx=idx)
         
         if lexeme.isalpha():
