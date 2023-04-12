@@ -1,6 +1,7 @@
 from yarl.definitions import Lexemes, Tag, lexeme_to_tag, compound_symbols, INDENT_SIZE
 from yarl.token import Token
-from yarl.utils import print_error, prt_blue, prt_cyan, prt_red
+from yarl.utils import *
+
 import os
 import math
 
@@ -15,22 +16,10 @@ class Scanner:
         self.last_indents = 0
     
     def scan(self, filename):
+
         self.__open_file(filename=filename)
-        tokens, errors = self.__get_tokens()
-        if errors:
-            for error in errors:
-                error["filename"] = os.path.abspath(filename)
-                print_error(error)
-        else:
-            line = 1
-            for token in tokens:
-                if token.line != line:
-                    line = token.line
-                    print(f"\n   {line:>2}{prt_blue(' |')}", end=" ")
-                print(f"{prt_cyan('<')}{token}{prt_cyan('>')}", end="  ")
-
-        print(f'\n  **** Finishing scanning, there were {prt_red(len(errors))} errors')
-
+        return self.__get_tokens()
+          
     def __check_for_indents(self):
         self.__skip_spaces(omit_last=False)
         n_indents = math.ceil((self.idx - 1) / INDENT_SIZE)
@@ -47,7 +36,7 @@ class Scanner:
             for i in range(delta_indents):
                 indents_dedents.append(Token(lexeme="", tag=Tag.DEDENT,line=self.lineno, idx=i*INDENT_SIZE+1))
         return indents_dedents
-
+        
     def __get_complete_str(self):
         idx = self.idx
         colon_assign = False
