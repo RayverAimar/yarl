@@ -43,11 +43,22 @@ class Scanner:
         self.__get_next_char()
         lexeme = self.current_atom
         while self.current_atom != "\n" and self.current_atom != Lexemes.QUOTE and self.current_atom:
+            
+            if (self.__next_char() == '\\'):
+                #lexeme+=self.current_atom
+                self.__get_next_char()
+                lexeme+=self.__get_next_char()
+                #print(self.current_atom)
+                lexeme+=self.__get_next_char()
+                continue;
+            #print("Hola")
             lexeme+=self.__get_next_char()
+        
+        
         if not self.current_atom or self.current_atom == "\n":
             self.idx = self.__get_str_start_position()
             raise SyntaxError("unterminated string literal")
-        if not all(32 <= ord(char) <= 120 for char in lexeme):   
+        if not all(32 <= ord(char) <= 126 for char in lexeme):   
             raise SyntaxError("invalid character in string")
         
         return Token(lexeme=lexeme[:-1], tag= (Tag.ID if colon_assign else Tag.STR), line=self.lineno, idx=idx)
@@ -87,6 +98,7 @@ class Scanner:
             self.__skip_unvalid_lines()
             if not self.current_atom:
                 return
+            self.current_atom = ''
             indents_dedents = self.__check_for_indents()
             if indents_dedents:
                 return indents_dedents
@@ -118,18 +130,30 @@ class Scanner:
                 return Token(lexeme=lexeme, tag=lexeme_to_tag.get(lexeme), line=self.lineno, idx=idx)
 
         if lexeme_to_tag.get(lexeme):
+            #print("dd", self.idx)
             return Token(lexeme=lexeme, tag=lexeme_to_tag.get(lexeme), line=self.lineno, idx=self.idx)
         
         if lexeme.isnumeric():
+            
+            if lexeme == '0' and self.__next_char().isnumeric():
+                raise SyntaxError("invalid number")
+
+            dec = False
+            
             while self.__next_char().isnumeric():
+                if (self.__next_char() == '.'):
+                    dec = True;
                 self.current_atom = self.__get_next_char()
                 lexeme += self.current_atom
-            
+            #print(ord(“))
             if (int(lexeme) > 2147483647):
+                self.idx -= 1
                 raise OverflowError("integer overflow")
 
             return Token(lexeme=lexeme, tag=Tag.NUM, line=self.lineno, idx=idx)
         
+
+
         if lexeme.isalpha():
             while self.__next_char().isalpha() or self.__next_char().isnumeric() or self.__next_char() == '_':
                 self.current_atom = self.__get_next_char()
@@ -138,6 +162,8 @@ class Scanner:
                 return Token(lexeme=lexeme, tag=lexeme_to_tag.get(lexeme), line=self.lineno, idx=idx)
             return Token(lexeme=lexeme, tag=Tag.ID, line=self.lineno, idx=idx)
         self.idx = len(self.linecontent) - 1
+
+        print("ss", self.idx)
         raise SyntaxError("invalid character") # invalid syntax (SyntaxError)
 
     def __get_tokens(self):
@@ -154,14 +180,13 @@ class Scanner:
                 else:
                     tokens.append(token)
             except Exception as ex:
-                line_content = self.__jump_to_endline()
                 idx_error = self.idx
-                self.idx = 0
+                line_content = self.__jump_to_endline()
                 errors.append({
                     "msg" : str(ex),
-                    "content" : line_content, 
+                    "content" : line_content[1::], 
                     "lineno" : self.lineno,
-                    "idx_error": idx_error
+                    "idx_error": idx_error - 1
                     }) # Should skip line for security
         return tokens, errors
 
