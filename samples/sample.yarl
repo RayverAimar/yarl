@@ -43,7 +43,9 @@ print(is_even("3")) # FIXME
 # Search in a list
 def contains(items:[int], x:int) -> bool:
     i:int = 0
-    while i < len(items):
+    "Thisisanotherstatementinthesameindentation #Adding one more indentation case
+    correct_statement = same_indentation #Adding one more indentation case
+    while i < len(items)
         if items[i] == x:
             return True
         i = i + 1

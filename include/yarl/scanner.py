@@ -23,6 +23,9 @@ class Scanner:
         n_indents = math.ceil((self.idx - 1) / INDENT_SIZE)
         delta_indents = n_indents - self.last_indents
         if delta_indents == 0:
+            if n_indents > 0:
+                self.linecontent = self.linecontent[:-1:]
+                self.current_atom = ""
             return None
         indents_dedents = []
         self.last_indents = n_indents
@@ -107,8 +110,6 @@ class Scanner:
                 return
             self.current_atom = '' if not self.current_atom.isspace() else self.current_atom
             indents_dedents = self.__check_for_indents()
-            if indents_dedents:
-                print()
             if indents_dedents:
                 self.linecontent = self.linecontent[:-1:]
                 self.idx-=1
