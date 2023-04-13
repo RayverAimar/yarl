@@ -1,7 +1,6 @@
 from yarl.definitions import Lexemes, Tag, lexeme_to_tag, compound_symbols, INDENT_SIZE
 from yarl.token import Token
 
-import os
 import math
 
 class Scanner:
@@ -48,7 +47,7 @@ class Scanner:
         self.__get_next_char()
         lexeme = self.current_atom
         while self.current_atom != "\n" and self.current_atom != Lexemes.QUOTE and self.current_atom:
-            if (self.__next_char() == '\\'):
+            if self.__next_char() == '\\':
                 self.__get_next_char()
                 lexeme+=self.__get_next_char()
                 lexeme+=self.__get_next_char()
@@ -64,6 +63,7 @@ class Scanner:
         return Token(lexeme=lexeme[:-1], tag= (Tag.ID if colon_assign else Tag.STR), line=self.lineno, idx=idx)
 
     def __get_next_char(self):
+        ''' Returns next char in the buffer '''
         self.current_atom = self.text.read(1)
         self.linecontent += self.current_atom
         self.idx += 1
