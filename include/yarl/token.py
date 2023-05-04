@@ -6,7 +6,7 @@ class Token(object):
         self.idx = idx
     
     def found_at(self) -> str:
-        return "({}, {})".format(self.line, self.idx)
+        return "({}, {})".format(self.line, self.idx - 1)
     
     def __str__(self) -> str:
         return "{}, {}, {}".format(self.lexeme, self.tag, self.line)

@@ -13,7 +13,7 @@ def file_exists(path: str):
     
     return file_path
 
-def main(debug: bool = True, file_path:str = typer.Argument("./samples/correct_sample.yarl", 
+def main(debug: bool = True, file_path:str = typer.Argument("./samples/sample.yarl", 
                                         help="Input file with source code", 
                                         callback=file_exists)):
     console_handler = ConsoleHandler()
@@ -24,10 +24,10 @@ def main(debug: bool = True, file_path:str = typer.Argument("./samples/correct_s
         scanner = Scanner()
         tokens, errors = scanner.scan(file_path)
 
-        if errors:
-            console_handler.scan_debug_panel(errors, file_path)
-        else:
-            console_handler.scan_debug_table(tokens)
+        #if errors:
+        console_handler.scan_debug_panel(errors, file_path)
+        #else:
+        console_handler.scan_debug_table(tokens)
 
         console_handler.console.print(f'\nFinishing scanning with [b red]{len(errors)}[/b red] errors\n', justify="center")
 

@@ -50,7 +50,7 @@ class ConsoleHandler:
 
     def append_error(self, error):
 
-        content = f'\nFile [yellow]{error["filename"]}[/yellow], line [b blue]{error["lineno"]}[/b blue]\n'
+        content = f'\nFile [yellow]{error["filename"]}[/yellow], line [b blue]{error["lineno"] - 1}[/b blue]\n'
 
         if error["content"][-1] == "\n":
             error["content"] = error["content"][:-1]
