@@ -1,5 +1,6 @@
 
 class Lexemes:
+    ADD = "+"
     AND = "and"
     ARROW_ASSIGN = "->"
     AS = "as"
@@ -19,6 +20,7 @@ class Lexemes:
     DIV_FLOAT = "/"
     DIV_INT = "//"
     EQ = "=="
+    EQUAL = "="
     ELIF = "elif"
     ELSE = "else"
     EOL_COMMENT = "#"
@@ -40,6 +42,7 @@ class Lexemes:
     LE = "<="
     LPAREN = "("
     LT = "<"
+    MINUS = "-"
     ML_COMMENT = '"""'
     MOD = "%"
     MULT = "*"
@@ -185,6 +188,213 @@ compound_symbols = {
     Lexemes.GT : Lexemes.ASSIGN,
     Lexemes.LT : Lexemes.ASSIGN,
     Lexemes.DIFF : Lexemes.GT
+}
+
+'''
+FIRST[Program] = $ def if while for pass return -->
+FIRST[DefList] = def
+FIRST[StatementList] = if while for pass return -->
+FIRST[Def] = def
+FIRST[TypedVarList] = ID
+FIRST[Return] = int str [
+FIRST[Block] = NEWLINE
+FIRST[TypedVar] = ID
+FIRST[Type] = int str [
+FIRST[TypedVarListTail] = ,
+FIRST[Statement] = if while for pass return -->
+FIRST[SimpleStatement] = pass return -->
+FIRST[Expr] = -->
+FIRST[ElifList] = elif
+FIRST[Else] = else
+FIRST[Elif] = elif
+FIRST[SSTail] = =
+FIRST[ReturnExpr] = -->
+FIRST[orExpr] = -->
+FIRST[ExprPrime] = if
+FIRST[andExpr] = -->
+FIRST[orExprPrime] = or
+FIRST[notExpr] = -->
+FIRST[andExprPrime] = and
+FIRST[CompExpr] = ID ( [ -
+FIRST[notExprPrime] = not
+FIRST[IntExpr] = ID ( [ -
+FIRST[CompExprPrime] =
+FIRST[CompOp] =
+FIRST[Term] = ID ( [ -
+FIRST[IntExprPrime] = + -
+FIRST[Factor] = ID ( [ -
+FIRST[TermPrime] = *
+FIRST[//] =
+FIRST[%] =
+FIRST[Name] = ID
+FIRST[Literal] =
+FIRST[List] = [
+FIRST[NameTail] = ( [
+FIRST[ExprList] = -->
+FIRST[None] =
+FIRST[True] =
+FIRST[False] =
+FIRST[INTEGER] =
+FIRST[STRING] =
+FIRST[ExprListTail] = ,
+FIRST[==] =
+FIRST[!=] =
+FIRST[<] =
+FIRST[>] =
+FIRST[<=] =
+FIRST[>=] =
+FIRST[is] =
+'''
+
+'''
+FIRST[Program] = def ID ( [ if while for pass return -
+FIRST[DefList] = def
+FIRST[StatementList] = ID ( [ if while for pass return -
+FIRST[Def] = def
+FIRST[TypedVarList] = ID
+FIRST[Return] = ->Type
+FIRST[Block] = NEWLINE
+FIRST[TypedVar] = ID
+FIRST[Type] = int str [
+FIRST[TypedVarListTail] = ,
+FIRST[Statement] = ID ( [ if while for pass return -
+FIRST[SimpleStatement] = ID ( [ pass return -
+FIRST[Expr] = ID ( [ -
+FIRST[ElifList] = elif
+FIRST[Else] = else
+FIRST[Elif] = elif
+FIRST[SSTail] = =
+FIRST[ReturnExpr] = ID ( [ -
+FIRST[orExpr] = ID ( [ -
+FIRST[ExprPrime] = if
+FIRST[andExpr] = ID ( [ -
+FIRST[orExprPrime] = or
+FIRST[notExpr] = ID ( [ -
+FIRST[andExprPrime] = and
+FIRST[CompExpr] = ID ( [ -
+FIRST[notExprPrime] = not
+FIRST[IntExpr] = ID ( [ -
+FIRST[CompExprPrime] =
+FIRST[CompOp] =
+FIRST[Term] = ID ( [ -
+FIRST[IntExprPrime] = + -
+FIRST[Factor] = ID ( [ -
+FIRST[TermPrime] = * //
+FIRST[%] =
+FIRST[Name] = ID
+FIRST[Literal] =
+FIRST[List] = [
+FIRST[NameTail] = ( [
+FIRST[ExprList] = ID ( [ -
+FIRST[None] =
+FIRST[True] =
+FIRST[False] =
+FIRST[INTEGER] =
+FIRST[STRING] =
+FIRST[ExprListTail] = ,
+FIRST[==] =
+FIRST[!=] =
+FIRST[<] =
+FIRST[>] =
+FIRST[<=] =
+FIRST[>=] =
+FIRST[is] =
+FOLLOW[Program] =
+FOLLOW[DefList] = ID ( [ if while for pass return -
+FOLLOW[StatementList] = DEDENT
+FOLLOW[Def] = def ID ( [ if while for pass return -
+FOLLOW[TypedVarList] = )
+FOLLOW[Return] = :
+FOLLOW[Block] = def ID ( [ DEDENT if while for elif else pass return -
+FOLLOW[TypedVar] = ) ,
+FOLLOW[Type] = ) ] ,
+FOLLOW[TypedVarListTail] = )
+FOLLOW[Statement] = ID ( [ DEDENT if while for pass return -
+FOLLOW[SimpleStatement] = NEWLINE
+FOLLOW[Expr] = ) : , NEWLINE =
+FOLLOW[ElifList] = ID ( [ DEDENT if while for else pass return -
+FOLLOW[Else] = ID ( [ DEDENT if while for pass return -
+FOLLOW[Elif] = ID ( [ DEDENT if while for elif else pass return -
+FOLLOW[SSTail] = NEWLINE
+FOLLOW[ReturnExpr] = NEWLINE
+FOLLOW[orExpr] = ) : , NEWLINE if =
+FOLLOW[ExprPrime] = ) : , NEWLINE =
+FOLLOW[andExpr] = ) : , NEWLINE if else = or
+FOLLOW[orExprPrime] = ) : , NEWLINE if =
+FOLLOW[notExpr] = ) : , NEWLINE if else = or and
+FOLLOW[andExprPrime] = ) : , NEWLINE if else = or
+FOLLOW[CompExpr] = ) : , NEWLINE if else = or and not
+FOLLOW[notExprPrime] = ) : , NEWLINE if else = or and
+FOLLOW[IntExpr] = ) : , NEWLINE if else = or and not
+FOLLOW[CompExprPrime] = ) : , NEWLINE if else = or and not
+FOLLOW[CompOp] = ID ( [ -
+FOLLOW[Term] = ) : , NEWLINE if else = or and not + -
+FOLLOW[IntExprPrime] = ) : , NEWLINE if else = or and not
+FOLLOW[Factor] = ) : , NEWLINE if else = or and not + - * //
+FOLLOW[TermPrime] = ) : , NEWLINE if else = or and not + -
+FOLLOW[%] = ID ( [ -
+FOLLOW[Name] =
+FOLLOW[Literal] = ) : , NEWLINE if else = or and not + - * //
+FOLLOW[List] = ) : , NEWLINE if else = or and not + - * //
+FOLLOW[NameTail] =
+FOLLOW[ExprList] =
+FOLLOW[None] = ) : , NEWLINE if else = or and not + - * //
+FOLLOW[True] = ) : , NEWLINE if else = or and not + - * //
+FOLLOW[False] = ) : , NEWLINE if else = or and not + - * //
+FOLLOW[INTEGER] = ) : , NEWLINE if else = or and not + - * //
+FOLLOW[STRING] = ) : , NEWLINE if else = or and not + - * //
+FOLLOW[ExprListTail] =
+FOLLOW[==] =
+FOLLOW[!=] =
+FOLLOW[<] = ID ( [ -
+FOLLOW[>] = ID ( [ -
+FOLLOW[<=] = ID ( [ -
+FOLLOW[>=] = ID ( [ -
+FOLLOW[is] = ID ( [ -
+'''
+
+first = {
+    "Program" : ["$", Lexemes.DEF, Lexemes.IF, Lexemes.WHILE, Lexemes.FOR, Lexemes.PASS, Lexemes.RETURN],
+    "DefList" : [Lexemes.DEF],
+    "StatementList" : [Lexemes.IF, Lexemes.WHILE, Lexemes.FOR, Lexemes.PASS, Lexemes.RETURN],
+    "Def" : [Lexemes.DEF],
+    "TypedVarList" : [Tag.ID],
+    "Type" : [Lexemes.INT, Lexemes.STR, Lexemes.LSBRACKET],
+    "TypedVar" : [Tag.ID],
+    "Return" : [Lexemes.INT, Lexemes.STR, Lexemes.LSBRACKET],
+    "Block" : ["NEWLINE"],
+    "TypedVarListTail" : [Lexemes.COMMA],
+    "Statement" : [Lexemes.IF, Lexemes.WHILE, Lexemes.FOR, Lexemes.PASS, Lexemes.RETURN],
+    "SimpleStatement" : [Lexemes.PASS, Lexemes.RETURN],
+    "Expr" : [Lexemes.ARROW_ASSIGN],
+    "ElifList" : [Lexemes.ELIF],
+    "Else" : [Lexemes.ELSE],
+    "Elif" : [Lexemes.ELIF],
+    "SSTail" : [Lexemes.EQUAL],
+    "ReturnExpr" : [],
+    "orExpr" : [],
+    "ExprPrime" : [Lexemes.IF],
+    "andExpr" : [],
+    "orExprPrime" : [Lexemes.OR],
+    "notExpr" : [],
+    "andExprPrime" : [Lexemes.AND],
+    "CompExpr" : [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET, Lexemes.MINUS],
+    "notExprPrime" : [Lexemes.NOT],
+    "IntExpr" : [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET, Lexemes.MINUS],
+    "CompExprPrime" : [],
+    "CompOp" : [],
+    "Term" : [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET, Lexemes.MINUS],
+    "IntExprPrime" : [Lexemes.ADD, Lexemes.MINUS],
+    "Factor" : [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET, Lexemes.MINUS],
+    "TermPrime" : [Lexemes.MULT],
+    "//" : [],
+    "%" : [],
+    "Name" : [Tag.ID],
+    "Literal" : [],
+    "List" : ["["],
+    "NameTail" : [Lexemes.LSBRACKET, Lexemes.LPAREN],
+    "ExprList" : [],
+    "ExprListTail" : [Lexemes.COMMA]
 }
 
 INDENT_SIZE = 4
