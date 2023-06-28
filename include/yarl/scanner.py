@@ -12,14 +12,25 @@ class Scanner:
         self.idx = 0
         self.looking_for_indents = True
         self.last_indents = 0
+        self.current_indents = 0
     
     def scan(self, filename):
         self.__open_file(filename=filename)
         return self.__get_tokens()
-          
+
+
+    def __check_for_indents(self):
+        self.__skip_spaces(omit_last=True)
+        indents_dedents = []
+        if(self.idx == (INDENT_SIZE * (self.current_indents+1)) + 1 ):
+            indents_dedents.append(Token(lexeme="", tag=Tag.INDENT,line=self.lineno, idx=INDENT_SIZE+1))
+
+
+
     def __check_for_indents(self):
         ''' Checks how many indents there are at the beginning of the line'''
         self.__skip_spaces(omit_last=False)
+        print("\nSelf.idx:", self.idx)
         n_indents = math.ceil((self.idx - 1) / INDENT_SIZE)
         delta_indents = n_indents - self.last_indents
         if delta_indents == 0:
@@ -37,7 +48,7 @@ class Scanner:
             for i in range(delta_indents):
                 indents_dedents.append(Token(lexeme="", tag=Tag.DEDENT,line=self.lineno, idx=i*INDENT_SIZE+1))
         return indents_dedents
-        
+
     def __get_complete_str(self):
         '''
             Returns Token of the complete string if finds its closure, otherwise it may raise SyntaxError
@@ -241,6 +252,7 @@ class Scanner:
     def __skip_spaces(self, omit_last = True):
         '''
             Skip only spaces in a line and reachs up to a next valid/unvalid character
+
             Args:
                 omit_last : bool
                     If set True, it also skips the next character different than spaces (useful for skipping newlines)

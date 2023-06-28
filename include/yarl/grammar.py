@@ -1,4 +1,4 @@
-epsilon = "epsilon"
+epsilon = "ε"
 
 grammar = """
 Program -> DefList StatementList
@@ -14,7 +14,7 @@ TypedVarList -> TypedVar TypedVarListTail
 TypedVarListTail -> , TypedVar TypedVarListTail
 TypedVarListTail -> ε
 Return -> ε
-Return -> ->Type
+Return -> -> Type
 Block -> NEWLINE INDENT Statement StatementList DEDENT
 StatementList -> Statement StatementList
 StatementList -> ε
@@ -35,30 +35,29 @@ SimpleStatement -> return ReturnExpr
 ReturnExpr -> Expr
 ReturnExpr -> ε
 Expr -> orExpr ExprPrime
-ExprPrime ->  if andExpr else andExpr ExprPrime
+ExprPrime -> if andExpr else andExpr ExprPrime
 ExprPrime -> ε
 orExpr -> andExpr orExprPrime
 orExprPrime -> or andExpr orExprPrime
 orExprPrime -> ε
 andExpr -> notExpr andExprPrime
-andExprPrime ->  and notExpr andExprPrime
+andExprPrime -> and notExpr andExprPrime
 andExprPrime -> ε
 notExpr -> CompExpr notExprPrime
 notExprPrime -> not CompExpr notExprPrime
 notExprPrime -> ε
 CompExpr -> IntExpr CompExprPrime
-CompExprPrime ->  CompOp IntExpr CompExprPrime
+CompExprPrime -> CompOp IntExpr CompExprPrime
 CompExprPrime -> ε
 IntExpr -> Term IntExprPrime
-IntExprPrime ->  + Term IntExprPrime
-IntExprPrime ->  - Term IntExprPrime
+IntExprPrime -> + Term IntExprPrime
+IntExprPrime -> - Term IntExprPrime
 IntExprPrime -> ε
 Term -> Factor TermPrime
-TermPrime ->  * Factor TermPrime
-TermPrime ->  // Factor TermPrime
-TermPrime ->  % Factor TermPrime
+TermPrime -> * Factor TermPrime
+TermPrime -> // Factor TermPrime
+TermPrime -> % Factor TermPrime
 TermPrime -> ε
-Factor -> - Factor
 Factor -> Name
 Factor -> Literal
 Factor -> List

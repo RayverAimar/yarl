@@ -1,5 +1,6 @@
 from yarl.consolehandler import ConsoleHandler
 from yarl.scanner import Scanner
+from yarl.parser import RecursiveDescentParser
 
 import typer
 
@@ -13,23 +14,24 @@ def file_exists(path: str):
     
     return file_path
 
-def main(debug: bool = True, file_path:str = typer.Argument("./samples/sample.yarl", 
+def main(debug: bool = True, file_path:str = typer.Argument("./samples/correct_sample.yarl", 
                                         help="Input file with source code", 
                                         callback=file_exists)):
     console_handler = ConsoleHandler()
 
     if debug:
-        console_handler.print_title()
+        #console_handler.print_title()
 
         scanner = Scanner()
         tokens, errors = scanner.scan(file_path)
-
-        #if errors:
-        console_handler.scan_debug_panel(errors, file_path)
+        #parser = RecursiveDescentParser(eof="$", file_path=file_path)
+        #parser.parse()
+        if errors:
+            console_handler.scan_debug_panel(errors, file_path)
         #else:
         console_handler.scan_debug_table(tokens)
 
-        console_handler.console.print(f'\nFinishing scanning with [b red]{len(errors)}[/b red] errors\n', justify="center")
+        #console_handler.console.print(f'\nFinishing scanning with [b red]{len(errors)}[/b red] errors\n', justify="center")
 
 
 if __name__ == "__main__":
