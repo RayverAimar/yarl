@@ -90,6 +90,7 @@ class Tag:
     EOL_COMMENT = "EOL_COMMENT"
     EXCEPT = "EXCEPT"
     FINALLY = "FINALLY"
+    FALSE = "FALSE"
     FOR = "FOR"
     GLOBAL = "GLOBAL"
     ID = "ID"
@@ -114,6 +115,7 @@ class Tag:
     RPAREN = "RPAREN"
     STR = "STR"
     TRY = "TRY"
+    TRUE = "TRUE"
     WHILE = "WHILE"
     WITH = "WITH"
     YIELD = "YIELD"
@@ -141,7 +143,7 @@ lexeme_to_tag = {
     Lexemes.ELSE:           Tag.ELSE,
     Lexemes.EOL_COMMENT:    Tag.EOL_COMMENT,
     Lexemes.EXCEPT:         Tag.EXCEPT,
-    Lexemes.FALSE:          Tag.ID,
+    Lexemes.FALSE:          Tag.FALSE,
     Lexemes.FINALLY:        Tag.FINALLY,
     Lexemes.FOR:            Tag.FOR,
     Lexemes.GLOBAL:         Tag.GLOBAL,
@@ -175,7 +177,7 @@ lexeme_to_tag = {
     Lexemes.RETURN:         Tag.RETURN,
     Lexemes.STR:            Tag.STR,
     Lexemes.SUM:            Tag.ARITHMETIC_OPERATOR,
-    Lexemes.TRUE:           Tag.ID,
+    Lexemes.TRUE:           Tag.TRUE,
     Lexemes.TRY:            Tag.TRY,
     Lexemes.WHILE:          Tag.WHILE,
     Lexemes.WITH:           Tag.WITH,
@@ -203,29 +205,29 @@ first = {
     "TypedVarListTail": [Lexemes.COMMA],
     "Statement": [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET, Lexemes.IF, Lexemes.WHILE, Lexemes.FOR, Lexemes.PASS, Lexemes.RETURN],
     "SimpleStatement": [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET, Lexemes.PASS, Lexemes.RETURN],
-    "Expr": [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET, Lexemes.ARROW_ASSIGN],
+    "Expr": [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET, Lexemes.ARROW_ASSIGN, Lexemes.TRUE, Lexemes.FALSE, Lexemes.NONE, Lexemes.STR],
     "ElifList": [Lexemes.ELIF],
     "Else": [Lexemes.ELSE],
     "Elif": [Lexemes.ELIF],
     "SSTail": [Lexemes.EQUAL],
     "ReturnExpr": [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET],
-    "orExpr": [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET],
+    "orExpr": [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET, Lexemes.TRUE, Lexemes.FALSE, Lexemes.NONE, Lexemes.STR],
     "ExprPrime": [Lexemes.IF],
-    "andExpr": [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET],
+    "andExpr": [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET, Lexemes.TRUE, Lexemes.FALSE, Lexemes.NONE, Lexemes.STR],
     "orExprPrime": [Lexemes.OR],
-    "notExpr": [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET],
+    "notExpr": [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET, Lexemes.TRUE, Lexemes.FALSE, Lexemes.NONE, Lexemes.STR],
     "andExprPrime": [Lexemes.AND],
-    "CompExpr": [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET, Lexemes.MINUS],
+    "CompExpr": [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET, Lexemes.MINUS, Lexemes.TRUE, Lexemes.FALSE, Lexemes.NONE, Lexemes.STR],
     "notExprPrime": [Lexemes.NOT],
-    "IntExpr": [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET, Lexemes.MINUS],
-    "CompExprPrime": [],
+    "IntExpr": [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET, Lexemes.MINUS, Lexemes.TRUE, Lexemes.FALSE, Lexemes.NONE, Lexemes.STR],
+    "CompExprPrime": ["==", "!=", "<", ">", "<=", ">=", "is"],
     "CompOp": ["==", "!=", "<", ">", "<=", ">=", "is"],
-    "Term": [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET, Lexemes.MINUS],
+    "Term": [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET, Lexemes.MINUS, Lexemes.TRUE, Lexemes.FALSE, Lexemes.NONE, Lexemes.STR],
     "IntExprPrime": [Lexemes.ADD, Lexemes.MINUS],
-    "Factor": [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET, Lexemes.MINUS],
+    "Factor": [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET, Lexemes.MINUS, Lexemes.TRUE, Lexemes.FALSE, Lexemes.NONE, Lexemes.STR],
     "TermPrime": [Lexemes.MULT, Lexemes.DIV_INT, Lexemes.MOD],
     "Name": [Tag.ID],
-    "Literal": ["None", "True", "False", "INTEGER", "STRING"],
+    "Literal": [Lexemes.NONE, Lexemes.TRUE, Lexemes.FALSE, Tag.NUM, Lexemes.STR],
     "List": [Lexemes.LSBRACKET],
     "NameTail": [Lexemes.LSBRACKET, Lexemes.LPAREN],
     "ExprList": [Tag.ID, Lexemes.LPAREN, Lexemes.LSBRACKET],

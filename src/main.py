@@ -6,6 +6,8 @@ import typer
 
 from pathlib import Path
 
+from anytree import Node, RenderTree
+
 def file_exists(path: str):
     file_path = Path(path)
 
@@ -14,7 +16,7 @@ def file_exists(path: str):
     
     return file_path
 
-def main(debug: bool = True, file_path:str = typer.Argument("./samples/correct_sample.yarl", 
+def main(debug: bool = True, file_path:str = typer.Argument("./samples/parser/fail_sample.yarl", 
                                         help="Input file with source code", 
                                         callback=file_exists)):
     console_handler = ConsoleHandler()
@@ -22,15 +24,15 @@ def main(debug: bool = True, file_path:str = typer.Argument("./samples/correct_s
     if debug:
         #console_handler.print_title()
 
-        scanner = Scanner()
-        tokens, errors = scanner.scan(file_path)
-        #parser = RecursiveDescentParser(eof="$", file_path=file_path)
-        #parser.parse()
-        if errors:
-            console_handler.scan_debug_panel(errors, file_path)
-        #else:
-        console_handler.scan_debug_table(tokens)
+        #scanner = Scanner()
+        #tokens, errors = scanner.scan(file_path)
+        parser = RecursiveDescentParser(eof="$", file_path=file_path)
+        parser.parse()
 
+        #if errors:
+        #    console_handler.scan_debug_panel(errors, file_path)
+        #else:
+            #console_handler.scan_debug_table(tokens)
         #console_handler.console.print(f'\nFinishing scanning with [b red]{len(errors)}[/b red] errors\n', justify="center")
 
 

@@ -1,32 +1,45 @@
 from yarl.definitions import Tag, Lexemes, first
 from yarl.scanner import Scanner
+from yarl.consolehandler import ConsoleHandler
+
+from anytree import Node, RenderTree
+from anytree.exporter import UniqueDotExporter
+
+
+def render_tree(root : object):
+    for pre, fill, node in RenderTree(root):
+        print("%s%s" % (pre, node.name))
+
+with_expr = True
 
 class RecursiveDescentParser:
+
+    error_node = Node('Error')
+
     def __init__(self, eof, file_path):
         self.buffer = []
         self.scanner = Scanner()
+        self.file_path = file_path
         tokens, errors = self.scanner.scan(file_path)
+        self.tokens = tokens
         for token in tokens:
-            print(token.lexeme, token.tag)
-        for i in range(len(tokens)):
-            if tokens[i].tag == Tag.ID:
-                self.buffer.append(Tag.ID)
-            elif tokens[i].tag == Tag.NEWLINE:
-                self.buffer.append(Tag.NEWLINE)
-            elif tokens[i].tag == Tag.INDENT:
-                self.buffer.append(Tag.INDENT)
-            elif tokens[i].tag == Tag.DEDENT:
-                self.buffer.append(Tag.DEDENT)
-            elif tokens[i].tag == Tag.NUM:
-                self.buffer.append("INTEGER")
-            elif tokens[i].tag == Tag.STR:
-                self.buffer.append("STRING")
+            if token.tag == 'INT':
+                self.buffer.append(token.lexeme)
+            elif token.tag == 'STR':
+                self.buffer.append('str')
+            elif token.tag == 'BOOL':
+                self.buffer.append(token.lexeme)
+            elif token.tag == 'ID':
+                self.buffer.append(token.tag)
+            elif token.tag == 'NUM':
+                self.buffer.append('ID')
+            elif token.tag in ['NEWLINE', 'DEDENT', 'INDENT']:
+                self.buffer.append(token.tag)
             else:
-                self.buffer.append(tokens[i].lexeme)
-        print(self.buffer)
+                self.buffer.append(token.lexeme)
+
         self.eof = "$"
         self.error = ""
-        #self.buffer = ["def","ID","ID",":","int",",","ID",":","int",")","->","int",":","NEWLINE","INDENT","return","ID","+","ID"]
         self.index = 0
         self.current_token = self.buffer[self.index]
         self.errors = []
@@ -34,37 +47,27 @@ class RecursiveDescentParser:
         self.recovery = False
     
     def parse(self):
-        parsing = self.program()
-        if parsing:
-            print("There were errors!")
-            
+        self.RootAST = Node('Program')
+        self.program(self.RootAST)
+        print(RenderTree(self.RootAST).by_attr())
+        UniqueDotExporter(self.RootAST).to_picture("TreeImg.png")
+        
 
-    def add_error(self, message, func):
-        message=message+str(self.lineno)
+    def add_error(self, message):
         self.errors.append(message)
-        #find newline in buffer
-        #find newline in non terminal methods
-        #self.recovery = True
-        while self.current_token != Tag.NEWLINE and self.index < len(self.buffer):
-            self.next_token()
-        return func()
 
-    def program(self): #Done
+    def program(self, parent:Node):
         while self.current_token in first["DefList"]:
-            self.Def()
-            self.next_token()
+            DefNonTerminalAST = Node("DEF_STATEMENT", parent=parent)
+            self.Def(DefNonTerminalAST)
             
         while self.current_token in first["StatementList"]:
-            self.StatementList()
-            self.next_token()
-        
-        if self.current_token != self.eof:
-            return self.error
+            self.StatementList(parent)
 
+        console_handler = ConsoleHandler()
         if self.errors:
             print("\n--> Incorrect Program")
-            for error in self.errors:
-                print(error)
+            console_handler.scan_debug_panel(self.errors, self.file_path, False)
         else:
             print("\n--> Accepted Program")
 
@@ -77,351 +80,499 @@ class RecursiveDescentParser:
         else:
             self.current_token = self.buffer[self.index]
 
-    def DefList(self): #Done
-        if self.current_token not in first["Def"] and not self.recovery:
-            return self.error
-        self.Def()
+    def HandlingError(self, func, parent):
+        while self.current_token != Tag.NEWLINE:
+            self.next_token()
+        self.lineno+=1
+        return func(parent)
         
-    def Def(self): #Done
-        # Def -> def ID ( TypedVarList ) Return : Block
+    def Def(self, parent:Node):
         if self.current_token != Lexemes.DEF and not self.recovery:
+            self.add_error(f'Expected \'{Lexemes.DEF}\' at line {self.tokens[self.index].line}.')
             return self.error
+        self.def_node_AST = Node('def', parent=parent)
         self.next_token()
         if self.current_token != Tag.ID and not self.recovery:
-            return self.error
+            Node('ERROR', parent)
+            self.add_error(f'Expected Identifier at line {self.tokens[self.index].line}')
+            Block_Node = Node('BLOCK', parent=parent)
+            return self.HandlingError(self.Block, Block_Node)
+        Node(str(self.tokens[self.index].lexeme), parent=parent)
         self.next_token()
         if self.current_token != Lexemes.LPAREN and not self.recovery: 
-            return self.add_error("Expected '('. Error found at line ", self.Block)
+            Node('ERROR', parent)
+            self.add_error(f'Expected \'{Lexemes.LPAREN}\' at line {self.tokens[self.index].line}')
+            Block_Node = Node('BLOCK', parent=parent)
+            return self.HandlingError(self.Block, Block_Node)
+        self.L_Paren_node_AST = Node(str(self.tokens[self.index].lexeme), parent=parent)
         self.next_token()
         if self.current_token in first["TypedVarList"]:
-            self.TypedVarList()
+            TypedVar_Node_AST = Node('TYPED_VAR', parent=parent)
+            self.TypedVarList(TypedVar_Node_AST)
             self.next_token()
             while self.current_token == Lexemes.COMMA:
+                self.Comma_Node_AST = Node(str(self.tokens[self.index].lexeme), parent=parent)
                 self.next_token()
-                self.TypedVar()
+                TypedVar_Node_AST = Node('TYPED_VAR', parent=parent)
+                self.TypedVar(TypedVar_Node_AST)
                 self.next_token()
         if self.current_token != Lexemes.RPAREN and not self.recovery:
-            return self.error
+            Node('ERROR', parent)
+            self.add_error(f'Expected \'{Lexemes.RPAREN}\' at line {self.tokens[self.index].line}')
+            Block_Node = Node('BLOCK', parent=parent)
+            return self.HandlingError(self.Block, Block_Node)
+        Node(Lexemes.RPAREN, parent=parent)
         self.next_token()
         if self.current_token == Lexemes.ARROW_ASSIGN:
+            Node(Lexemes.ARROW_ASSIGN, parent=parent)
             self.next_token()
-            self.Type()
+            self.Type(parent)
             self.next_token()
         if self.current_token != Lexemes.COLON_ASSIGN and not self.recovery:
-            return self.error
+            Node('ERROR', parent)
+            self.add_error(f'Expected \'{Lexemes.COLON_ASSIGN}\' at line {self.tokens[self.index].line}')
+            Block_Node = Node('BLOCK', parent=parent)
+            return self.HandlingError(self.Block, Block_Node)
+        Node(Lexemes.COLON_ASSIGN, parent=parent)
         self.next_token()
-        self.Block()
+        Block_Node = Node('BLOCK', parent=parent)
+        self.Block(Block_Node)
+        
     
-    def synchronize(self):
+    def synchronize(self, parent:Node=None):
         if self.recovery:
             self.recovery = False
 
-    def Block(self): #Done
-        # Block -> NEWLINE INDENT Statement StatementList DEDENT
+    def Block(self, parent:Node=None):
         if self.current_token != Tag.NEWLINE and not self.recovery:
+            print("There were an error")
             return self.error
+                        #Node(Tag.NEWLINE, parent=parent)
         self.lineno+=1
         self.next_token()
-        #if self.current_token != Tag.INDENT and not self.recovery:
-        #    return self.error
+        if self.current_token != Tag.INDENT and not self.recovery:
+            print("There were an error")
+            return self.error
+                        #Node(Tag.INDENT, parent=parent)
         self.next_token()
-        print("Current token", self.current_token)
         if self.current_token not in first["Statement"] and not self.recovery:
+            print("There were an error")
             return self.error
-        self.Statement()
-        self.next_token()
+        Statement_Node = Node('STATEMENT', parent=parent)
+        self.Statement(Statement_Node)
         while self.current_token in first["StatementList"]:
-            self.StatementList()
-            self.next_token()
+            Statement_Node = Node('STATEMENT', parent=parent)
+            self.StatementList(Statement_Node)
         if self.current_token != Tag.DEDENT and self.current_token != self.eof and not self.recovery:
+            print("There were an error")
             return self.error
+                        #Node(Tag.DEDENT, parent=parent)
+        self.next_token()
 
-    def Statement(self): #Done
+    def Statement(self, parent:Node=None):
         if self.current_token == Lexemes.IF:
+            Node(Lexemes.IF, parent)
             self.next_token()
-            self.Expr()
+            if with_expr:
+                Expr_Node = Node('EXPR', parent=parent)
+                self.Expr(Expr_Node)
+            else:
+                self.Expr(parent)
             if self.current_token != Lexemes.COLON_ASSIGN and not self.recovery:
-                return self.error
+                Node('ERROR', parent)
+                self.add_error(f'Expected \'{Lexemes.COLON_ASSIGN}\' at line {self.tokens[self.index].line}')
+                Block_Node = Node('BLOCK', parent=parent)
+                return self.HandlingError(self.Block, Block_Node)
+            Node(Lexemes.COLON_ASSIGN, parent)
             self.next_token()
-            self.Block()
-            self.next_token()
+            Block_Node = Node('BLOCK', parent)
+            self.Block(Block_Node)
             while self.current_token == Lexemes.ELIF:
-                self.Elif()
-                self.next_token()
+                self.Elif(parent)
             if self.current_token == Lexemes.ELSE:
-                self.Else()
+                self.Else(parent)
         elif self.current_token == Lexemes.WHILE:
+            Node(Lexemes.WHILE, parent=parent)
             self.next_token()
-            self.Expr()
-            self.next_token()
+            if with_expr:
+                Expr_Node = Node('EXPR', parent=parent)
+                self.Expr(Expr_Node)
+            else:
+                self.Expr(parent)
             if self.current_token != Lexemes.COLON_ASSIGN and not self.recovery:
-                return self.error
+                Node('ERROR', parent)
+                self.add_error(f'Expected \'{Lexemes.COLON_ASSIGN}\' at line {self.tokens[self.index].line}')
+                Block_Node = Node('BLOCK', parent=parent)
+                return self.HandlingError(self.Block, Block_Node)
+            Node(Lexemes.COLON_ASSIGN, parent=parent)
             self.next_token()
-            self.Block()
+            Block_Node = Node('BLOCK', parent=parent)
+            self.Block(Block_Node)
         elif self.current_token == Lexemes.FOR:
+            Node(Lexemes.FOR, parent)
             self.next_token()
             if self.current_token != Tag.ID and not self.recovery:
+                print("There were an error")
                 return self.error
+            Node(str(self.tokens[self.index].lexeme), parent)
             self.next_token()
             if self.current_token != Lexemes.IN and not self.recovery:
+                print("There were an error")
                 return self.error
+            Node(Lexemes.IN, parent)
             self.next_token()
-            self.Expr()
-            self.next_token()
+            if with_expr:
+                Expr_Node = Node('EXPR', parent=parent)
+                self.Expr(Expr_Node)
+            else:
+                self.Expr(parent)
             if self.current_token != Lexemes.COLON_ASSIGN and not self.recovery:
-                return self.error
-            self.Block()
+                Node('ERROR', parent)
+                self.add_error(f'Expected \'{Lexemes.COLON_ASSIGN}\' at line {self.tokens[self.index].line}')
+                Block_Node = Node('BLOCK', parent=parent)
+                return self.HandlingError(self.Block, Block_Node)
+            Node(Lexemes.COLON_ASSIGN, parent)
+            self.next_token()
+            Block_Node = Node('BLOCK', parent)
+            self.Block(Block_Node)
         elif self.current_token in first["SimpleStatement"]:
-            self.SimpleStatement()
+            self.SimpleStatement(parent)
             if self.current_token != Tag.NEWLINE and self.current_token != self.eof and not self.recovery:
+                print("There were an error")
                 return self.error
+            self.next_token()
             self.lineno+=1
             self.synchronize()
         else:
+            print("There were an error")
             return self.error
 
-    def SimpleStatement(self): #Done
+    def SimpleStatement(self, parent:Node=None):
         if self.current_token in first["Expr"]:
-            self.Expr()
-            self.next_token()
+            if with_expr:
+                Expr_Node = Node('EXPR', parent=parent)
+                self.Expr(Expr_Node)
+            else:
+                self.Expr(parent)
             while self.current_token == Lexemes.EQUAL:
-                self.SSTail()
-                self.next_token()
+                Node(Lexemes.EQUAL, parent=parent)
+                self.SSTail(parent)
         elif self.current_token == Lexemes.PASS:
+            Node(Lexemes.PASS, parent)
             self.next_token()
         elif self.current_token == Lexemes.RETURN:
+            Node(Lexemes.RETURN, parent)
             self.next_token()
-            self.ReturnExpr()
+            self.ReturnExpr(parent)
             self.next_token()
         else:
+            print("There were an error")
             return self.error
     
-    def ReturnExpr(self):
-        if self.current_token in first["Expr"]:
-            self.Expr()
+    def ReturnExpr(self, parent:Node=None):
+        if self.current_token not in [Lexemes.TRUE, Lexemes.FALSE, Lexemes.NONE, Tag.ID]:
+            print('There was an error. Expected True/False or None')
+        Node(str(self.tokens[self.index].lexeme), parent)
 
-    def SSTail(self): #Done
+    def SSTail(self, parent:Node=None):
         if self.current_token != Lexemes.EQUAL and not self.recovery:
+            print("There were an error")
             return self.error
         self.next_token()
-        self.Expr()
-    
-    def StatementList(self): #Done
-        if self.current_token not in first["Statement"] and not self.recovery:
-            return self.error
-        self.Statement()
-    
-    def Elif(self):
-        if self.current_token != Lexemes.ELIF and not self.recovery:
-            return self.error
-        self.next_token()
-        self.Expr()
-        self.next_token()
-        if self.current_token != Lexemes.COLON_ASSIGN and not self.recovery:
-            return self.error
-        self.next_token()
-        self.Block()
-
-    def Else(self):
-        if self.current_token != Lexemes.ELSE and not self.recovery:
-            return self.error
-        self.next_token()
-        if self.current_token != Lexemes.COLON_ASSIGN and not self.recovery:
-            return self.error
-        self.next_token()
-        self.Block()
-
-    def TypedVarList(self):
-        if self.current_token not in first["TypedVar"] and not self.recovery:
-            return self.error
-        self.TypedVar()
-    
-    def TypedVar(self):
-        if self.current_token != Tag.ID and not self.recovery:
-            return self.error
-        self.next_token()
-        if self.current_token != Lexemes.COLON_ASSIGN and not self.recovery:
-            return self.error
-        self.next_token()
-        self.Type()
-    
-    def Type(self):
-        if self.current_token == Lexemes.INT:
-            pass
-        elif self.current_token == Lexemes.STR:
-            pass
-        elif  self.current_token == Lexemes.LSBRACKET:
-            self.next_token()
-            self.Type()
-            self.next_token()
-            if self.next_token != Lexemes.RSBRACKET and not self.recovery:
-                return self.error
+        if with_expr:
+            Expr_Node = Node('EXPR', parent=parent)
+            self.Expr(Expr_Node)
         else:
+            self.Expr(parent)
+    
+    def StatementList(self, parent:Node=None):
+        if self.current_token not in first["Statement"] and not self.recovery:
+            print("There were an error")
+            return self.error
+        Statement_Node = Node('STATEMENT', parent)
+        self.Statement(Statement_Node)
+    
+    def Elif(self, parent:Node=None):
+        if self.current_token != Lexemes.ELIF and not self.recovery:
+            print("There were an error")
+            return self.error
+        Node(Lexemes.ELIF, parent)
+        self.next_token()
+        if with_expr:
+            Expr_Node = Node('EXPR', parent=parent)
+            self.Expr(Expr_Node)
+        else:
+            self.Expr(parent)
+        if self.current_token != Lexemes.COLON_ASSIGN and not self.recovery:
+            Node('ERROR', parent)
+            self.add_error(f'Expected \'{Lexemes.COLON_ASSIGN}\' at line {self.tokens[self.index].line}')
+            Block_Node = Node('BLOCK', parent=parent)
+            return self.HandlingError(self.Block, Block_Node)
+        Node(Lexemes.COLON_ASSIGN, parent)
+        self.next_token()
+        Block_Node = Node('BLOCK', parent)
+        self.Block(Block_Node)
+
+    def Else(self, parent:Node=None):
+        if self.current_token != Lexemes.ELSE and not self.recovery:
+            print("There were an error")
+            return self.error
+        Node(Lexemes.ELSE, parent)
+        self.next_token()
+        if self.current_token != Lexemes.COLON_ASSIGN and not self.recovery:
+            Node('ERROR', parent)
+            self.add_error(f'Expected \'{Lexemes.COLON_ASSIGN}\' at line {self.tokens[self.index].line}')
+            Block_Node = Node('BLOCK', parent=parent)
+            return self.HandlingError(self.Block, Block_Node)
+        Node(Lexemes.COLON_ASSIGN, parent)
+        self.next_token()
+        Block_Node = Node('BLOCK', parent)
+        self.Block(Block_Node)
+
+    def TypedVarList(self, parent:Node):
+        if self.current_token not in first["TypedVar"] and not self.recovery:
+            print("There were an error")
+            return self.error
+        self.TypedVar(parent)
+    
+    def TypedVar(self, parent:Node):
+        if self.current_token != Tag.ID and not self.recovery:
+            print("There were an error")
+            return self.error
+        Node(str(self.tokens[self.index].lexeme), parent = parent)
+        self.next_token()
+        if self.current_token != Lexemes.COLON_ASSIGN and not self.recovery:
+            print("There were an error")
+            return self.error
+        Node(Lexemes.COLON_ASSIGN, parent = parent)
+        self.next_token()
+        self.Type(parent)
+    
+    def Type(self, parent:Node):
+        if self.current_token == Lexemes.INT:
+            Node(Lexemes.INT, parent=parent)
+        elif self.current_token == Lexemes.STR:
+            Node(Lexemes.STR, parent=parent)
+        elif self.current_token == Lexemes.BOOL:
+            Node(Lexemes.BOOL, parent=parent)
+        elif  self.current_token == Lexemes.LSBRACKET:
+            Node(Lexemes.LSBRACKET, parent=parent)
+            self.next_token()
+            self.Type(parent)
+            self.next_token()
+            if self.current_token != Lexemes.RSBRACKET and not self.recovery:
+                print("There were an error")
+                return self.error
+            Node(Lexemes.RSBRACKET, parent=parent)
+        else:
+            print("There were an error")
             return self.error
         
-    def Expr(self):
+    def Expr(self, parent:Node=None):
         if self.current_token not in first["orExpr"] and not self.recovery:
+            print("There were an error")
             return self.error
-        self.orExpr()
+        self.orExpr(parent)
         while self.current_token in first["ExprPrime"]:
-            self.ExprPrime()
-            self.next_token()
+            self.ExprPrime(parent)
     
-    def ExprPrime(self): #Done
+    def ExprPrime(self, parent:Node=None):
         if self.current_token != Lexemes.IF and not self.recovery:
+            print("There were an error")
             return self.error
+        Node(Lexemes.IF, parent)
         self.next_token()
-        self.andExpr()
-        self.next_token()
+        self.andExpr(parent)
         if self.current_token != Lexemes.ELSE and not self.recovery:
+            print("There were an error")
             return self.error
+        Node(Lexemes.ELSE, parent)
         self.next_token()
-        self.andExpr()
+        self.andExpr(parent)
     
-    def orExpr(self): #Done
+    def orExpr(self, parent:Node=None):
         if self.current_token not in first["andExpr"] and not self.recovery:
+            print("There were an error")
             return self.error
-        self.andExpr()
+        self.andExpr(parent)
         while self.current_token in first["orExprPrime"]:
-            self.orExprPrime()
-            self.next_token()
+            self.orExprPrime(parent)
 
-    def orExprPrime(self): #Done
+    def orExprPrime(self, parent:Node=None):
         if self.current_token != Lexemes.OR and not self.recovery:
+            print("There were an error")
             return self.error
+        Node(Lexemes.OR, parent)
         self.next_token()
-        self.andExpr() 
+        self.andExpr(parent) 
 
-    def andExpr(self): #Done
+    def andExpr(self, parent:Node=None):
         if self.current_token not in first["notExpr"] and not self.recovery:
+            print("There were an error")
             return self.error
-        self.notExpr()
+        self.notExpr(parent)
         while self.current_token in first["andExprPrime"]:
-            self.andExprPrime()
-            self.next_token()
+            self.andExprPrime(parent)
     
-    def andExprPrime(self): #Done
+    def andExprPrime(self, parent:Node=None):
         if self.current_token != Lexemes.AND and not self.recovery:
+            print("There were an error")
             return self.error
+        Node(Lexemes.AND, parent)
         self.next_token()
-        self.notExpr() 
+        self.notExpr(parent) 
 
-    def notExpr(self): #Done
+    def notExpr(self, parent:Node=None):
         if self.current_token not in first["CompExpr"] and not self.recovery:
+            print("There were an error")
             return self.error
-        self.CompExpr()
+        self.CompExpr(parent)
         while self.current_token in first["notExprPrime"]:
-            self.notExprPrime()
-            self.next_token()
+            self.notExprPrime(parent)
     
-    def notExprPrime(self): #Done
+    def notExprPrime(self, parent:Node=None):
         if self.current_token != Lexemes.NOT and not self.recovery:
+            print("There were an error")
             return self.error
+        Node(Lexemes.NOT, parent)
         self.next_token()
-        self.CompExpr() 
+        self.CompExpr(parent)
     
-    def CompExpr(self): #Done
+    def CompExpr(self, parent:Node=None):
         if self.current_token not in first["IntExpr"] and not self.recovery:
+            print("There were an error")
             return self.error
-        self.IntExpr()
-        while self.current_token in first["CompExprPrime"]:
-            self.CompExprPrime()
-            self.next_token()
+        self.IntExpr(parent)
+        while self.current_token in first["CompOp"]:
+            self.CompExprPrime(parent)
     
-    def CompExprPrime(self): #Done
+    def CompExprPrime(self, parent:Node=None):
         if self.current_token not in first["CompOp"] and not self.recovery:
+            print("There were an error")
             return self.error
+        Node(str(self.tokens[self.index].lexeme), parent=parent)
         self.next_token()
-        self.IntExpr()
+        self.IntExpr(parent)
     
-    def IntExpr(self): #Done
+    def IntExpr(self, parent:Node=None):
         if self.current_token not in first["Term"] and not self.recovery:
+            print("There were an error")
             return self.error
-        self.Term()
+        self.Term(parent)
         while self.current_token in first["IntExprPrime"]:
-            self.IntExprPrime()
-            self.next_token()
+            self.IntExprPrime(parent)
     
-    def IntExprPrime(self): #Done
+    def IntExprPrime(self, parent:Node=None):
         if self.current_token not in first["IntExprPrime"] and not self.recovery:
+            print("There were an error")
             return self.error
+        Node(str(self.tokens[self.index].lexeme), parent)
         self.next_token()
-        self.Term()
+        self.Term(parent)
     
-    def Term(self): #Done
+    def Term(self, parent:Node=None):
         if self.current_token not in first["Factor"] and not self.recovery:
+            print("There were an error")
             return self.error
-        self.Factor()
-        self.next_token()
+        self.Factor(parent)
         if self.current_token in first["NameTail"]:
-            self.NameTail()
-            self.next_token()
+            self.NameTail(parent)
         while self.current_token in first["TermPrime"]:
             self.TermPrime()
-            self.next_token()
     
-    def TermPrime(self): #Done
+    def TermPrime(self, parent:Node=None):
         if self.current_token not in first["TermPrime"] and not self.recovery:
+            print("There were an error")
             return self.error
         self.next_token()
         self.Factor()
 
-    def Factor(self):
+    def Factor(self, parent:Node=None):
         if self.current_token in first["Name"]:
-            self.Name()
+            self.Name(parent)
         elif self.current_token in first["Literal"]:
-            self.Literal()
+            self.Literal(parent)
         elif self.current_token in first["List"]:
-            self.List()
+            self.List(parent)
         elif self.current_token == Lexemes.LPAREN:
+            Node(Lexemes.LPAREN, parent)
             self.next_token()
-            self.Expr()
+            if with_expr:
+                Expr_Node = Node('EXPR', parent=parent)
+                self.Expr(Expr_Node)
+            else:
+                self.Expr(parent)
             self.next_token()
             if self.current_token != Lexemes.RPAREN and not self.recovery:
+                print("There were an error")
                 return self.error
+            Node(Lexemes.RPAREN, parent)
+            self.next_token()
         else:
+            print("There were an error")
             return self.error
     
-    def Name(self):
+    def Name(self, parent:Node=None):
         if self.current_token != Tag.ID and not self.recovery:
+            print("There were an error")
             return self.error
+        Node(str(self.tokens[self.index].lexeme), parent=parent)
+        self.next_token()
     
-    def Literal(self):
-        if self.current_token not in [Lexemes.NONE, Lexemes.TRUE, Lexemes.FALSE, "INTEGER", "STRING"]  and not self.recovery:
+    def Literal(self, parent:Node=None):
+        if self.current_token not in [Lexemes.NONE, Lexemes.TRUE, Lexemes.FALSE, Tag.NUM, Lexemes.STR]  and not self.recovery:
+            print("There were an error")
             return self.error
+        Node(str(self.tokens[self.index].lexeme), parent=parent)
+        self.next_token()
     
-    def List(self):
+    def List(self, parent:Node=None):
         if self.current_token != Lexemes.LSBRACKET and not self.recovery:
+            print("There were an error")
             return self.error
+        Node(Lexemes.LSBRACKET, parent=parent)
         self.next_token()
-        self.ExprList()
-        self.next_token()
+        self.ExprList(parent)
         if self.current_token != Lexemes.RSBRACKET and not self.recovery:
+            print("There were an error")
             return self.error
+        Node(Lexemes.RSBRACKET, parent=parent)
+        self.next_token()
     
-    def NameTail(self):
+    def NameTail(self, parent:Node=None):
         if self.current_token == Lexemes.LPAREN:
+            Node(Lexemes.LPAREN, parent=parent)
             self.next_token()
-            self.ExprList()
+            self.ExprList(parent)
             if self.current_token != Lexemes.RPAREN and not self.recovery:
+                print("There were an error")
                 return self.error
-        elif self.current_token in first["List"]:
+            Node(Lexemes.RPAREN, parent=parent)
             self.next_token()
-            self.List()
+        elif self.current_token in first["List"]:
+            self.List(parent)
         else:
+            print("There were an error")
             return self.error
         
-    def ExprList(self):
+    def ExprList(self, parent:Node=None):
         if self.current_token in first["Expr"]:
-            self.next_token()
-            self.Expr()
-            self.next_token()
+            if with_expr:
+                Expr_Node = Node('EXPR', parent=parent)
+                self.Expr(Expr_Node)
+            else:
+                self.Expr(parent)
             while self.current_token in first["ExprListTail"]:
-                self.ExprListTail()
-                self.next_token()
+                self.ExprListTail(parent)
     
-    def ExprListTail(self):
+    def ExprListTail(self, parent:Node=None):
         if self.current_token != Lexemes.COMMA and not self.recovery:
+            print("There were an error")
             return self.error
+        Node(Lexemes.COMMA, parent=parent)
         self.next_token()
-        self.Expr()
+        if with_expr:
+            Expr_Node = Node('EXPR', parent=parent)
+            self.Expr(Expr_Node)
+        else:
+            self.Expr(parent)

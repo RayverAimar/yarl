@@ -1,8 +1,6 @@
 from yarl.definitions import Lexemes, Tag, lexeme_to_tag, compound_symbols, INDENT_SIZE
 from yarl.token import Token
 
-import math
-
 class Scanner:
     def __init__(self):
         self.lineno = 1
@@ -20,33 +18,22 @@ class Scanner:
 
 
     def __check_for_indents(self):
-        self.__skip_spaces(omit_last=True)
         indents_dedents = []
-        if(self.idx == (INDENT_SIZE * (self.current_indents+1)) + 1 ):
+        if(self.idx == (INDENT_SIZE * self.current_indents)+1): # No changes of indentation
+            return
+        if(self.idx == (INDENT_SIZE * (self.current_indents+1)) + 1 ): # There may only exist one more indentation at most per line
+            self.current_indents+=1
             indents_dedents.append(Token(lexeme="", tag=Tag.INDENT,line=self.lineno, idx=INDENT_SIZE+1))
-
-
-
-    def __check_for_indents(self):
-        ''' Checks how many indents there are at the beginning of the line'''
-        self.__skip_spaces(omit_last=False)
-        print("\nSelf.idx:", self.idx)
-        n_indents = math.ceil((self.idx - 1) / INDENT_SIZE)
-        delta_indents = n_indents - self.last_indents
-        if delta_indents == 0:
-            if n_indents > 0:
-                self.linecontent = self.linecontent[:-1:]
-                self.current_atom = ""
-            return None
-        indents_dedents = []
-        self.last_indents = n_indents
-        if delta_indents > 0:
-            for i in range(delta_indents):
-                indents_dedents.append(Token(lexeme="", tag=Tag.INDENT,line=self.lineno, idx=i*INDENT_SIZE+1))
-        else:
-            delta_indents = abs(delta_indents)
-            for i in range(delta_indents):
-                indents_dedents.append(Token(lexeme="", tag=Tag.DEDENT,line=self.lineno, idx=i*INDENT_SIZE+1))
+            return indents_dedents
+        spaces = self.idx - 1
+        if spaces % INDENT_SIZE != 0: # Number of spaces not compatible with fixed INDENT SIZE
+            raise SyntaxError("Unexpected Indentation")
+        last_indentation_spaces = (self.current_indents * INDENT_SIZE) + 1
+        spaces = last_indentation_spaces - self.idx
+        dedents = spaces // INDENT_SIZE
+        for i in range(dedents): # Append necessary dedents as there may be more than one per line
+            self.current_indents-=1
+            indents_dedents.append(Token(lexeme="", tag=Tag.DEDENT, line=self.lineno, idx=(INDENT_SIZE*i)+1))
         return indents_dedents
 
     def __get_complete_str(self):
@@ -83,10 +70,6 @@ class Scanner:
         self.idx += 1
         return self.current_atom
 
-    def __beginning_line(self):
-        ''' Returns True if there's only one character in current line '''
-        return True if len(self.linecontent) == 1 else False
-
     def __get_str_start_position(self):
         ''' Returns the starting position of the string for later pointing out of error '''
         for i, atom in enumerate(self.linecontent[::-1]):
@@ -115,45 +98,58 @@ class Scanner:
         return True
 
     def __get_token(self):
-        if self.__beginning_line():
-            self.__skip_unvalid_lines()
-            if not self.current_atom:
-                return
-            self.current_atom = '' if not self.current_atom.isspace() else self.current_atom
-            indents_dedents = self.__check_for_indents()
-            if indents_dedents:
-                self.linecontent = self.linecontent[:-1:]
-                self.idx-=1
-                return indents_dedents
+        current_tokens = []
         
-        self.__skip_spaces()
+        if self.current_atom == Lexemes.NEWLINE:
+            if len(self.linecontent) == 1: # Void line
+                self.__reset_values()
+                return
+            
+            lineno = self.lineno
+            idx = self.idx
+            self.__reset_values()
+            current_tokens.append(Token(lexeme=" ", tag='NEWLINE', line=lineno, idx=idx))
+            return current_tokens
+
+        if self.current_atom.isspace():
+            return
+
+        if len(self.linecontent.strip()) == 1:
+            indent_dedents = self.__check_for_indents()
+            if indent_dedents:
+                for unique_token in indent_dedents:
+                    current_tokens.append(unique_token)
 
         if not self.current_atom: # Not a token neither a lexical error
             return
-
-        lexeme = self.current_atom
-        idx = self.idx
         
-        if lexeme == Lexemes.NEWLINE:
-            lineno = self.lineno
-            self.__reset_values()
-            return Token(lexeme=" ", tag=lexeme_to_tag.get(lexeme), line=lineno, idx=idx)
+        lexeme = self.current_atom
+        idx = self.idx            
 
         if lexeme == Lexemes.EOL_COMMENT: # Comments are not errors
+            lineno = self.lineno
+            idx = self.idx
+            linecontent = self.linecontent
             self.__jump_to_endline()
-            return
+            if linecontent.strip()[0] == Lexemes.EOL_COMMENT:
+                return current_tokens
+            else:
+                return Token(lexeme=" ", tag='NEWLINE', line=lineno, idx=idx)
 
         if lexeme == Lexemes.QUOTE:
-            return self.__get_complete_str()
+            current_tokens.append(self.__get_complete_str())
+            return current_tokens
         
         if compound_symbols.get(lexeme):
             if self.__next_char() == compound_symbols.get(lexeme):
                 self.current_atom = self.__get_next_char()
                 lexeme+=self.current_atom
-                return Token(lexeme=lexeme, tag=lexeme_to_tag.get(lexeme), line=self.lineno, idx=idx)
+                current_tokens.append(Token(lexeme=lexeme, tag=lexeme_to_tag.get(lexeme), line=self.lineno, idx=idx))
+                return current_tokens
 
         if lexeme_to_tag.get(lexeme):
-            return Token(lexeme=lexeme, tag=lexeme_to_tag.get(lexeme), line=self.lineno, idx=self.idx)
+            current_tokens.append(Token(lexeme=lexeme, tag=lexeme_to_tag.get(lexeme), line=self.lineno, idx=self.idx))
+            return current_tokens
         
         if lexeme.isnumeric():
             if lexeme == '0' and self.__next_char().isnumeric():
@@ -164,16 +160,24 @@ class Scanner:
             if (int(lexeme) > 2147483647):
                 self.idx -= 1
                 raise OverflowError("integer overflow")
-
-            return Token(lexeme=lexeme, tag=Tag.NUM, line=self.lineno, idx=idx)
+            current_tokens.append(Token(lexeme=lexeme, tag=Tag.NUM, line=self.lineno, idx=idx))
+            return current_tokens
         
         if lexeme.isalpha():
             while self.__next_char().isalpha() or self.__next_char().isnumeric() or self.__next_char() == '_':
                 self.current_atom = self.__get_next_char()
                 lexeme += self.current_atom
+            if lexeme == 'int':
+                current_tokens.append(Token(lexeme=lexeme, tag='INT', line=self.lineno, idx=idx))
+                return current_tokens
+            if lexeme == Lexemes.BOOL:
+                current_tokens.append(Token(lexeme=lexeme, tag='BOOL', line=self.lineno, idx=idx))
+                return current_tokens
             if lexeme_to_tag.get(lexeme):
-                return Token(lexeme=lexeme, tag=lexeme_to_tag.get(lexeme), line=self.lineno, idx=idx)
-            return Token(lexeme=lexeme, tag=Tag.ID, line=self.lineno, idx=idx)
+                current_tokens.append(Token(lexeme=lexeme, tag=lexeme_to_tag.get(lexeme), line=self.lineno, idx=idx))
+                return current_tokens
+            current_tokens.append(Token(lexeme=lexeme, tag=Tag.ID, line=self.lineno, idx=idx))
+            return current_tokens
         self.idx = len(self.linecontent) - 1
         raise SyntaxError("invalid character") # invalid syntax (SyntaxError)
 
@@ -199,6 +203,14 @@ class Scanner:
                     "lineno" : self.lineno,
                     "idx_error": idx_error - 1
                     }) # Should skip line for security
+        # Check if theres a NEWLINE at the end of the code
+        if tokens[-1].tag != Tag.NEWLINE:
+            tokens.append(Token(lexeme=" ", tag='NEWLINE', line=self.lineno, idx=self.idx))
+        
+        # Check if there were pending DEDENTS
+        if self.current_indents > 0:
+            for i in range(self.current_indents):
+                tokens.append(Token(lexeme="", tag=Tag.DEDENT, line=self.lineno + 1, idx=(INDENT_SIZE*i)+1))
         return tokens, errors
 
     def __look_back_for(self, atom):

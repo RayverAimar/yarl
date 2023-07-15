@@ -34,19 +34,32 @@ class ConsoleHandler:
         
         self.console.print(debug_table, justify="center")
     
-    def scan_debug_panel(self, errors, filename):
+    def scan_debug_panel(self, errors, filename, tokenize = True):
 
-        content = ""
+        if tokenize:
+            content = ""
 
-        for error in errors:
-            error["filename"] = path.abspath(filename)
-            content += self.append_error(error)
+            for error in errors:
+                error["filename"] = path.abspath(filename)
+                content += self.append_error(error)
 
-        self.console.print(Panel(content,
-                                 padding=(0, 2),
-                                 title="[b red]Errors found! during scanning",
-                                 border_style="red"
-                                ))
+            self.console.print(Panel(content,
+                                    padding=(0, 2),
+                                    title="[b red]Errors found! during scanning",
+                                    border_style="red"
+                                    ))
+        else:
+            print()
+            print()
+            content = ""
+            for error in errors:
+                content+= f"\nFile [yellow] {path.abspath(filename)} [green]SyntaxError: " + error + "\n"
+            self.console.print(Panel(content,
+                                    padding=(0, 2),
+                                    title="[b red]Errors found! during parsing",
+                                    border_style="red"
+                                    ))
+
 
     def append_error(self, error):
 
