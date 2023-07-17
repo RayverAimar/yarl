@@ -20,9 +20,10 @@ $ ./env/Scripts/Activate.ps1
 
 According the OS you're currently using.
 
-After this, install YARL in developer mode with as it can have some changes later
+After this, install the requirements (as we are using rich, typer, anytree, click and some other libraries in this project) and YARL in developer mode with as it can have some changes later
 
 ```bash
+$ pip install -r requirements.txt
 $ python setup.py develop
 ```
 
@@ -38,7 +39,7 @@ This will get you in prompt the Lexemes and Tokens scanned in a debug table as f
 
 <div align="center">
 
-![Scanning](https://cdn.discordapp.com/attachments/886256698640171008/1130594115386617856/image.png)
+![Scanning](https://cdn.discordapp.com/attachments/886256698640171008/1130599147519606906/image.png)
 
 </div>
 
