@@ -8,10 +8,10 @@ def ok(i:int) -> bool # Missing COLON_ASSIGN Lexeme
 def contains(items:[int], x:int -> bool: # Missing RIGHT PARENTHESES
     i = 0
     correct_statement = same_indentation #Adding one more indentation case
-    while i < len(items) # Missing COLON_ASSIGN Lexeme in While 
+    while i < len items): # Missing COLON_ASSIGN Lexeme in While 
         if items[i] == x # Missing COLON_ASSIGN Lexeme in While
             return True
-        i = i + 1
+        i = i  1 # Not an operator
     return False
 print(is_even("3")) # FIXME
 if contains([4, 8, 15, 16, 23], 15) # Missing COLON_ASSIGN Lexeme in While
