@@ -1,0 +1,8 @@
+
+def add a:int, b:int) # Missing Left Parentheses and Lexeme.COLON_ASSIGN
+    result = a  b # Missing operator but understood as a missing NEWLINE
+    return result
+
+def substraction(a:int):
+
+I_forgot_identation = None

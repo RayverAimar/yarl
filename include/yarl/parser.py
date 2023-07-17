@@ -20,6 +20,7 @@ class RecursiveDescentParser:
         self.file_path = file_path
         tokens, errors = self.scanner.scan(file_path)
         self.tokens = tokens
+        self.scanner_errors = errors
         for token in tokens:
             if token.tag == 'INT':
                 self.buffer.append(token.lexeme)
@@ -36,7 +37,7 @@ class RecursiveDescentParser:
             else:
                 self.buffer.append(token.lexeme)
 
-        self.eof = "$"
+        self.eof = eof
         self.error = ""
         self.index = 0
         self.current_token = self.buffer[self.index]
@@ -45,9 +46,22 @@ class RecursiveDescentParser:
         self.RootAST = Node('Program')
         self.program(self.RootAST)
         print()
-        print(RenderTree(self.RootAST).by_attr())
+        
         UniqueDotExporter(self.RootAST).to_picture("./output/Abstract_Syntax_Tree.png")
         console_handler = ConsoleHandler()
+        console_handler.print_title()
+
+        if self.scanner_errors:
+            console_handler.scan_debug_panel(self.scanner, self.file_path)
+            console_handler.console.print(f'\nFinishing scanning with [b red]{len(self.scanner_errors)}[/b red] errors\n', justify="center")
+            console_handler.console.print(f'\nNot able to parse. There were [/b red] errors during scanning.\n', justify="center")
+            return
+        else:
+            console_handler.scan_debug_table(self.tokens)
+            console_handler.console.print(f'\nFinishing scanning with [b red]{len(self.scanner_errors)}[/b red] errors\n', justify="center")
+
+        print(RenderTree(self.RootAST).by_attr())
+
         if self.errors:
             console_handler.scan_debug_panel(self.errors, self.file_path, False)
             print("\n--> Incorrect Program")
@@ -89,7 +103,6 @@ class RecursiveDescentParser:
 
     def next_token(self):
         if self.index <= len(self.buffer):
-            #print(self.current_token, end=" ")
             pass
         self.index+=1
         if self.index >= len(self.buffer):
@@ -163,7 +176,8 @@ class RecursiveDescentParser:
 
         if self.current_token != Tag.INDENT:
             self.add_error(f'Expected indentation at line {self.tokens[self.index].line}.')
-            return False # Should enter in panic mode until find a DEDENT
+            return self.panic_mode(None, 'STATEMENT', parent)
+            #return False # Should enter in panic mode until find a DEDENT
         self.next_token()
 
         if not self.Statement(parent): 
