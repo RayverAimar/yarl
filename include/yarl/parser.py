@@ -46,7 +46,7 @@ class RecursiveDescentParser:
         self.program(self.RootAST)
         print()
         print(RenderTree(self.RootAST).by_attr())
-        UniqueDotExporter(self.RootAST).to_picture("./output/TreeImg.png")
+        UniqueDotExporter(self.RootAST).to_picture("./output/Abstract_Syntax_Tree.png")
         console_handler = ConsoleHandler()
         if self.errors:
             console_handler.scan_debug_panel(self.errors, self.file_path, False)
