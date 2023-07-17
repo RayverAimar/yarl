@@ -44,9 +44,15 @@ class RecursiveDescentParser:
     def parse(self):
         self.RootAST = Node('Program')
         self.program(self.RootAST)
+        print()
         print(RenderTree(self.RootAST).by_attr())
         UniqueDotExporter(self.RootAST).to_picture("./output/TreeImg.png")
-        
+        console_handler = ConsoleHandler()
+        if self.errors:
+            console_handler.scan_debug_panel(self.errors, self.file_path, False)
+            print("\n--> Incorrect Program")
+        else:
+            print("\n--> Accepted Program")
 
     def add_error(self, message):
         self.errors.append(message)
@@ -63,13 +69,6 @@ class RecursiveDescentParser:
             if not self.Statement(parent):
                 self.panic_mode(None, 'STATEMENT', parent)
                 self.next_token()
-
-        console_handler = ConsoleHandler()
-        if self.errors:
-            print("\n--> Incorrect Program")
-            console_handler.scan_debug_panel(self.errors, self.file_path, False)
-        else:
-            print("\n--> Accepted Program")
 
     def panic_mode(self, msg, func_to_syncronize, parent:Node):
         Node('ERROR', parent)
@@ -90,7 +89,8 @@ class RecursiveDescentParser:
 
     def next_token(self):
         if self.index <= len(self.buffer):
-            print(self.current_token, end=" ")
+            #print(self.current_token, end=" ")
+            pass
         self.index+=1
         if self.index >= len(self.buffer):
             self.current_token = self.eof
@@ -470,7 +470,7 @@ class RecursiveDescentParser:
             return self.Name(parent)
         elif self.current_token in first["Literal"]:
             return self.Literal(parent)
-        elif self.current_token != Lexemes.LSBRACKET:
+        elif self.current_token == Lexemes.LSBRACKET:
             return self.List(parent)
         elif self.current_token == Lexemes.LPAREN:
             Node(Lexemes.LPAREN, parent)
