@@ -1,0 +1,4 @@
+def print_variable():
+  print(x)
+
+print_variable()

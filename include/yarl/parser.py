@@ -21,21 +21,23 @@ class RecursiveDescentParser:
         tokens, errors = self.scanner.scan(file_path)
         self.tokens = tokens
         self.scanner_errors = errors
-        for token in tokens:
-            if token.tag == 'INT':
-                self.buffer.append(token.lexeme)
-            elif token.tag == 'STR':
+        for i in range(len(tokens)):
+            if self.tokens[i].tag == 'INT':
+                self.buffer.append(self.tokens[i].lexeme)
+            elif self.tokens[i].tag == 'STR':
                 self.buffer.append('str')
-            elif token.tag == 'BOOL':
-                self.buffer.append(token.lexeme)
-            elif token.tag == 'ID':
-                self.buffer.append(token.tag)
-            elif token.tag == 'NUM':
+            elif self.tokens[i].tag == 'BOOL':
+                self.buffer.append(self.tokens[i].lexeme)
+            elif self.tokens[i].tag == 'ID':
+                self.buffer.append(self.tokens[i].tag)
+            elif self.tokens[i].tag == 'NUM':
                 self.buffer.append('ID')
-            elif token.tag in ['NEWLINE', 'DEDENT', 'INDENT']:
-                self.buffer.append(token.tag)
+            elif self.tokens[i].tag in ['NEWLINE', 'DEDENT', 'INDENT']:
+                if self.tokens[i- 1]. tag == 'NEWLINE' and self.tokens[i]. tag == "NEWLINE":
+                    continue
+                self.buffer.append(self.tokens[i].tag)
             else:
-                self.buffer.append(token.lexeme)
+                self.buffer.append(self.tokens[i].lexeme)
 
         self.eof = eof
         self.error = ""
@@ -43,6 +45,7 @@ class RecursiveDescentParser:
         self.current_token = self.buffer[self.index]
         self.errors = []
     def parse(self):
+        print(self.buffer)
         self.RootAST = Node('Program')
         self.program(self.RootAST)
         print()
@@ -52,10 +55,10 @@ class RecursiveDescentParser:
         console_handler.print_title()
 
         if self.scanner_errors:
-            console_handler.scan_debug_panel(self.scanner, self.file_path)
+            console_handler.scan_debug_panel(self.scanner_errors, self.file_path)
             console_handler.console.print(f'\nFinishing scanning with [b red]{len(self.scanner_errors)}[/b red] errors\n', justify="center")
-            console_handler.console.print(f'\nNot able to parse. There were [/b red] errors during scanning.\n', justify="center")
-            return
+            console_handler.console.print(f'\nForcing parse. There were [b red]{len(self.scanner_errors)}[/b red] errors during scanning.\n', justify="center")
+            #return
         else:
             console_handler.scan_debug_table(self.tokens)
             console_handler.console.print(f'\nFinishing scanning with [b red]{len(self.scanner_errors)}[/b red] errors\n', justify="center")
@@ -77,12 +80,14 @@ class RecursiveDescentParser:
             Node('def', parent=Def_Statement_Node)
             self.next_token()
             if not self.Def(Def_Statement_Node):
-                self.panic_mode(None, 'DEDENT', parent)
-            
+                if not self.panic_mode(None, 'DEDENT', parent):
+                    return False
+                
         while self.current_token in first["Statement"]:
             if not self.Statement(parent):
                 self.panic_mode(None, 'STATEMENT', parent)
                 self.next_token()
+        return True
 
     def panic_mode(self, msg, func_to_syncronize, parent:Node):
         Node('ERROR', parent)
@@ -93,22 +98,26 @@ class RecursiveDescentParser:
             return self.HandlingError(self.Block, Block_Node)
         elif func_to_syncronize == 'STATEMENT':
             while self.current_token != Tag.NEWLINE:
-                self.next_token()
+                if not self.next_token():
+                    return False
             return True
         elif func_to_syncronize ==  'DEDENT':
             while self.current_token != Tag.DEDENT:
-                self.next_token()
-            self.next_token()
+                if not self.next_token():
+                    return False
+            if not self.next_token():
+                return False
             return True
 
     def next_token(self):
-        if self.index <= len(self.buffer):
-            pass
-        self.index+=1
-        if self.index >= len(self.buffer):
-            self.current_token = self.eof
-        else:
+        
+        if self.index < len(self.buffer) - 1:
+            self.index+=1
             self.current_token = self.buffer[self.index]
+            return True
+        else:
+            self.current_token = self.eof
+            return False
 
     def HandlingError(self, func, parent):
         while self.current_token != Tag.NEWLINE:
@@ -292,9 +301,11 @@ class RecursiveDescentParser:
         elif self.current_token == Lexemes.RETURN:
             Node(Lexemes.RETURN, parent)
             self.next_token()
-            if self.current_token in [Lexemes.TRUE, Lexemes.FALSE, Lexemes.NONE, Tag.ID]:
-                Node(str(self.tokens[self.index].lexeme), parent)
-                self.next_token()
+            if self.current_token in first['Expr']:
+                Expr_Node = Node('EXPR', parent=parent)
+                if not self.Expr(Expr_Node):
+                    return False
+                #self.next_token()
             return True
         
         else:

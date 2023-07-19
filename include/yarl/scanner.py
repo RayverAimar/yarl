@@ -27,7 +27,7 @@ class Scanner:
             return indents_dedents
         spaces = self.idx - 1
         if spaces % INDENT_SIZE != 0: # Number of spaces not compatible with fixed INDENT SIZE
-            raise SyntaxError("Unexpected Indentation")
+            raise SyntaxError("Unindent amount does not match previous indent")
         last_indentation_spaces = (self.current_indents * INDENT_SIZE) + 1
         spaces = last_indentation_spaces - self.idx
         dedents = spaces // INDENT_SIZE
@@ -101,10 +101,9 @@ class Scanner:
         current_tokens = []
         
         if self.current_atom == Lexemes.NEWLINE:
-            if len(self.linecontent) == 1: # Void line
+            if len(self.linecontent.strip()) == 0: # Void line
                 self.__reset_values()
                 return
-            
             lineno = self.lineno
             idx = self.idx
             self.__reset_values()
@@ -197,11 +196,12 @@ class Scanner:
             except Exception as ex:
                 idx_error = self.idx
                 line_content = self.__jump_to_endline()
+                tokens.append(Token(lexeme=" ", tag='NEWLINE', line=self.lineno, idx=self.idx))
                 errors.append({
                     "msg" : str(ex),
-                    "content" : line_content[1::], 
+                    "content" : line_content[::], 
                     "lineno" : self.lineno,
-                    "idx_error": idx_error - 1
+                    "idx_error": idx_error if idx_error > 0 else idx_error
                     }) # Should skip line for security
         # Check if theres a NEWLINE at the end of the code
         if tokens[-1].tag != Tag.NEWLINE:
