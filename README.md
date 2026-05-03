@@ -1,6 +1,11 @@
 <div align="center">
 
-# YARL - Yet Another Regular Language
+# YARL — Yet Another Regular Language
+
+A from-scratch compiler for a ChocoPy-flavored subset of Python: lexer, parser with panic-mode error recovery, and AST visualization with Graphviz.
+
+<img src="docs/ast-simple.png" alt="AST output of the YARL parser" width="700"/>
+
 </div>
 
 ## Installation
@@ -55,7 +60,7 @@ This will print the Lexemes and Tokens scanned in a debug table as following
 
 <div align="center">
 
-![Scanning](https://cdn.discordapp.com/attachments/886256698640171008/1130599147519606906/image.png)
+<img src="docs/scanning.png" alt="Lexer debug table" width="700"/>
 
 </div>
 
@@ -101,7 +106,7 @@ Its proper AST image will be the following:
 
 <div align="center">
 
-![AST](https://cdn.discordapp.com/attachments/886256698640171008/1130593455396114483/Abstract_Syntax_Tree.png)
+<img src="docs/ast-simple.png" alt="Abstract Syntax Tree" width="700"/>
 
 </div>
 
@@ -141,19 +146,11 @@ Program
     └── BLOCK
         └── ERROR
 ```
-And the errors will be forced to be displayed:
+The respective AST is generated even with errors present:
 
 <div align="center">
 
-![Errors](https://cdn.discordapp.com/attachments/886256698640171008/1130597183205421186/image.png)
-
-</div>
-
-And the respective AST will be the following
-
-<div align="center">
-
-![AST_Error](https://media.discordapp.net/attachments/886256698640171008/1130597569735692439/Abstract_Syntax_Tree.png)
+<img src="docs/ast-with-errors.png" alt="AST with recovered errors" width="700"/>
 
 </div>
 
