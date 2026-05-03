@@ -29,13 +29,17 @@ $ python setup.py develop
 
 ## Use
 
-If you're placed in the main folder try running the next command to see if YARL was successfully installed:
+From the project root, run the compiler against any sample to verify the install:
 
 ```bash
-$ python .\src.\main.py .\samples\parser\simple_sample.yarl --debug
+# Linux / macOS
+$ python src/main.py samples/parser/simple_sample.yarl --debug
+
+# Windows (PowerShell)
+$ python .\src\main.py .\samples\parser\simple_sample.yarl --debug
 ```
 
-This will get you in prompt the Lexemes and Tokens scanned in a debug table as following
+This will print the Lexemes and Tokens scanned in a debug table as following
 
 <div align="center">
 
@@ -47,7 +51,7 @@ This will get you in prompt the Lexemes and Tokens scanned in a debug table as f
 The proper Abstract Syntax Tree will also be printed and saved in [/output](https://github.com/RayverAimar/yarl/tree/master/output) folder:
 
 ```bash
-$ python .\src.\main.py .\samples\parser\simple_sample.yarl --debug
+$ python .\src\main.py .\samples\parser\simple_sample.yarl --debug
 
 Program
 └── DEF_STATEMENT
