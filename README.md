@@ -3,7 +3,7 @@
 # YARL - Yet Another Regular Language
 </div>
 
-## Instalation
+## Installation
 
 It is recommended to build a virtual environment before installing dependencies for this project as it can reconfigure environment variables.
 
