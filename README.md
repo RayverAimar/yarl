@@ -5,22 +5,34 @@
 
 ## Installation
 
-It is recommended to build a virtual environment before installing dependencies for this project as it can reconfigure environment variables.
+### System dependencies
+
+YARL renders the AST using [Graphviz](https://graphviz.org). Install the binary first — without it, `python src/main.py` will crash with `FileNotFoundError: 'dot'` after parsing.
 
 ```bash
-$ virtualenv env
+# macOS
+brew install graphviz
+
+# Debian / Ubuntu
+sudo apt-get install graphviz
+
+# Windows
+choco install graphviz
+```
+
+### Python environment
+
+```bash
+# Linux / macOS
+$ python3 -m venv env
 $ source env/bin/activate
+
+# Windows (PowerShell)
+$ python -m venv env
+$ .\env\Scripts\Activate.ps1
 ```
 
-or 
-
-```bash
-$ ./env/Scripts/Activate.ps1
-```
-
-According the OS you're currently using.
-
-After this, install the requirements (as we are using rich, typer, anytree, click and some other libraries in this project) and YARL in developer mode with as it can have some changes later
+Then install the Python dependencies and YARL in editable mode:
 
 ```bash
 $ pip install -r requirements.txt
